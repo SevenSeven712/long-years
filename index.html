@@ -1,0 +1,1834 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a12">
+<title>小七工具箱</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c5cff'/%3E%3Cstop offset='1' stop-color='%23ff5c8a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='46' font-size='38' text-anchor='middle' fill='%23fff' font-family='PingFang SC, Microsoft YaHei, sans-serif' font-weight='800'%3E%E4%B8%83%3C/text%3E%3C/svg%3E">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a12;
+  --panel:rgba(255,255,255,.045);
+  --border:rgba(255,255,255,.09);
+  --text:#eef0f6;
+  --muted:#8b8fa3;
+  --accent:#7c5cff;
+  --accent2:#ff5c8a;
+  --ok:#3ddc97;
+  --warn:#ffb84d;
+  --radius:18px;
+  --sidebar-w:250px;
+  --main-pad-x:30px;
+  --main-pad-y:28px;
+}
+html{-webkit-text-size-adjust:100%}
+html,body{
+  -webkit-user-select:none;user-select:none;
+  -webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;
+  overscroll-behavior:none;
+}
+input,textarea{-webkit-user-select:text;user-select:text}
+img,a{-webkit-user-drag:none;user-drag:none}
+body{
+  min-height:100vh;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+/* 滚动条 */
+.nav,.sign-scroll,.preset-scroll,.picker-tabs,.ai-quick-row,.sub-bar{
+  scrollbar-width:none;-ms-overflow-style:none;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-x:contain;
+  scroll-behavior:smooth;
+}
+.nav::-webkit-scrollbar,.sign-scroll::-webkit-scrollbar,.preset-scroll::-webkit-scrollbar,
+.picker-tabs::-webkit-scrollbar,.ai-quick-row::-webkit-scrollbar,.sub-bar::-webkit-scrollbar{display:none;width:0;height:0}
+/* 横向可滚动区右侧淡出提示（溢出时由 JS 添加 .edge） */
+.nav.edge,.sign-scroll.edge,.preset-scroll.edge,.picker-tabs.edge,.ai-quick-row.edge,.sub-bar.edge{
+  -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 22px),rgba(0,0,0,.25));
+  mask-image:linear-gradient(90deg,#000 calc(100% - 22px),rgba(0,0,0,.25));
+}
+.sidebar,.modal-body,.ai-messages{scrollbar-width:thin;scrollbar-color:rgba(124,92,255,.45) transparent}
+.sidebar::-webkit-scrollbar,.modal-body::-webkit-scrollbar,.ai-messages::-webkit-scrollbar{width:6px}
+.sidebar::-webkit-scrollbar-track,.modal-body::-webkit-scrollbar-track,.ai-messages::-webkit-scrollbar-track{background:transparent}
+.sidebar::-webkit-scrollbar-thumb,.modal-body::-webkit-scrollbar-thumb,.ai-messages::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(124,92,255,.55),rgba(255,92,138,.45));border-radius:99px}
+.modal-body{padding-right:6px}
+.ai-messages{padding-right:6px}
+button:focus-visible,input:focus-visible{outline:2px solid rgba(124,92,255,.7);outline-offset:2px}
+.orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.orbs i{position:absolute;border-radius:50%;filter:blur(100px);opacity:.35;display:block}
+.orbs i:nth-child(1){width:420px;height:420px;background:#7c5cff;top:-160px;left:-120px}
+.orbs i:nth-child(2){width:380px;height:380px;background:#ff5c8a;bottom:-140px;right:-100px;opacity:.22}
+.orbs i:nth-child(3){width:300px;height:300px;background:#2fd8ff;top:45%;left:55%;opacity:.14}
+.app{position:relative;z-index:1;display:grid;grid-template-columns:var(--sidebar-w) minmax(0,1fr);max-width:1280px;margin:0 auto;min-height:100vh}
+.sidebar{position:sticky;top:0;height:100vh;padding:26px 18px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:22px;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:11px;padding:0 6px}
+.logo{width:40px;height:40px;flex:0 0 40px;border-radius:13px;display:grid;place-items:center;font-size:19px;font-weight:800;color:#fff;background:linear-gradient(135deg,#7c5cff,#ff5c8a);box-shadow:0 8px 24px -8px rgba(124,92,255,.9)}
+.brand h1{font-size:16px;font-weight:700;letter-spacing:.2px}
+.brand p{font-size:11px;color:var(--muted);letter-spacing:1.4px;margin-top:1px}
+.nav{display:flex;flex-direction:column;gap:6px}
+.nav-btn{display:flex;align-items:center;gap:11px;width:100%;padding:11px 13px;border-radius:13px;background:transparent;border:1px solid transparent;color:var(--muted);font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;text-align:left;transition:background .2s,color .2s,border-color .2s;white-space:nowrap;flex-shrink:0}
+.nav-btn:hover{background:var(--panel);color:var(--text)}
+.nav-btn.active{background:linear-gradient(135deg,rgba(124,92,255,.24),rgba(255,92,138,.13));border-color:rgba(124,92,255,.38);color:#fff}
+.nav-btn .ico{width:19px;height:19px;flex:0 0 19px;display:grid;place-items:center}
+.nav-btn svg{width:100%;height:100%}
+.nav-btn.active .ico{color:#b9a4ff}
+.side-foot{margin-top:auto;font-size:11px;color:#4d5064;padding:0 8px;line-height:1.7}
+.main{padding:var(--main-pad-y) var(--main-pad-x) 100px;min-width:0}
+.view{display:none}
+.view.active{display:block;animation:fadeUp .34s cubic-bezier(.2,.7,.3,1)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.view-head{margin-bottom:18px}
+.view-head h2{font-size:23px;font-weight:700;letter-spacing:-.4px}
+.view-head p{font-size:13px;color:var(--muted);margin-top:5px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.card-title{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:1px;margin-bottom:14px}
+.grid{display:grid;gap:14px}
+.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.clock-card{position:relative;overflow:hidden;margin-bottom:14px;background:linear-gradient(140deg,rgba(124,92,255,.17),rgba(255,92,138,.08) 46%,rgba(255,255,255,.03));padding:22px 22px 26px}
+.clock-card::after{content:'';position:absolute;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(124,92,255,.45),transparent 66%);top:-180px;right:-90px;filter:blur(24px);pointer-events:none}
+.clock-top{display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;z-index:1}
+.pill{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:#c8c2ff;background:rgba(124,92,255,.14);border:1px solid rgba(124,92,255,.28);padding:5px 11px;border-radius:99px}
+.pill .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.ghost-btn{font-family:inherit;font-size:12.5px;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid var(--border);padding:6px 13px;border-radius:10px;cursor:pointer;transition:.2s;white-space:nowrap}
+.ghost-btn:hover{background:rgba(255,255,255,.1);color:var(--text)}
+.clock{position:relative;z-index:1;display:flex;align-items:baseline;justify-content:center;margin:18px 0 10px;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;font-size:clamp(42px,12.5vw,92px);font-weight:700;letter-spacing:-.03em;line-height:1;pointer-events:none}
+.clock .num{background:linear-gradient(180deg,#ffffff 20%,#a99bff 130%);-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-block}
+.clock .sep{opacity:.3;animation:blink 2s steps(1,end) infinite;padding:0 .02em}
+@keyframes blink{0%,49%{opacity:.3}50%,100%{opacity:.08}}
+.clock .ms{font-size:.32em;font-weight:600;color:var(--muted);margin-left:.12em;letter-spacing:0}
+.clock-date{position:relative;z-index:1;text-align:center;font-size:15px;font-weight:600}
+.clock-lunar{position:relative;z-index:1;text-align:center;font-size:12.5px;color:var(--muted);margin-top:6px}
+.stat{display:flex;flex-direction:column;gap:7px;padding:16px 17px}
+.stat-k{font-size:11.5px;color:var(--muted);letter-spacing:.4px}
+.stat-v{font-size:25px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.stat-v small{font-size:11.5px;font-weight:500;color:var(--muted);margin-left:3px}
+.cal-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.cal-title{font-size:17px;font-weight:700;flex:1;letter-spacing:-.2px}
+.icon-btn{width:34px;height:34px;flex:0 0 34px;border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text);font-size:17px;cursor:pointer;transition:.2s;font-family:inherit}
+.icon-btn:hover{background:rgba(124,92,255,.22);border-color:rgba(124,92,255,.4)}
+.icon-btn:active{transform:scale(.94)}
+.cal-week{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:6px}
+.cal-week span{text-align:center;font-size:11.5px;color:var(--muted);padding:6px 0;letter-spacing:.5px;font-weight:500}
+.cal-week span:first-child,.cal-week span:last-child{color:#ff8fa8}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-cell{min-height:58px;padding:6px 2px;border-radius:12px;border:1px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;transition:background .16s,border-color .16s,transform .16s}
+.cal-cell:hover{background:rgba(255,255,255,.07)}
+.cal-cell:active{transform:scale(.95)}
+.cal-cell .cd{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1}
+.cal-cell .cl{font-size:10px;color:var(--muted);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.cal-cell.wk .cd{color:#ff8fa8}
+.cal-cell.other{opacity:.28}
+.cal-cell.fest .cl{color:var(--accent2)}
+.cal-cell.term .cl{color:var(--ok)}
+.cal-cell.today{background:rgba(124,92,255,.14);border-color:rgba(124,92,255,.55)}
+.cal-cell.today .cd{color:#c3b2ff}
+.cal-cell.sel{background:linear-gradient(135deg,#7c5cff,#ff5c8a);border-color:transparent;box-shadow:0 8px 22px -10px rgba(124,92,255,1)}
+.cal-cell.sel .cd,.cal-cell.sel .cl{color:#fff}
+.cal-cell.sel .cl{opacity:.85}
+.day-detail{margin-top:14px}
+.dd-head{display:flex;align-items:center;gap:18px;padding-bottom:15px;border-bottom:1px solid var(--border)}
+.dd-day{font-size:46px;font-weight:800;line-height:1;letter-spacing:-2px;background:linear-gradient(140deg,#fff,#a99bff);-webkit-background-clip:text;background-clip:text;color:transparent;min-width:74px}
+.dd-solar{font-size:15px;font-weight:600}
+.dd-lunar{font-size:12.5px;color:var(--muted);margin-top:5px}
+.dd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding-top:15px}
+.dd-grid div{display:flex;flex-direction:column;gap:5px}
+.dd-grid span{font-size:11px;color:var(--muted);letter-spacing:.4px}
+.dd-grid b{font-size:13.5px;font-weight:600}
+.dd-empty{color:var(--muted);font-size:13.5px;text-align:center;padding:12px 0}
+.dd-fest{margin-top:15px;padding:14px 16px;border-radius:13px;background:linear-gradient(135deg,rgba(124,92,255,.13),rgba(255,92,138,.06));border:1px solid rgba(124,92,255,.22)}
+.dd-fest-head{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.dd-fest-head .di{width:22px;height:22px;color:#c3b2ff;display:grid;place-items:center}
+.dd-fest-head .di svg{width:100%;height:100%}
+.dd-fest-head b{font-size:14px;font-weight:700}
+.dd-fest p{font-size:12.5px;color:var(--muted);line-height:1.7}
+.sub-summary{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.sub-stat{flex:1;min-width:120px;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px 16px}
+.sub-stat-k{font-size:11.5px;color:var(--muted);letter-spacing:.4px}
+.sub-stat-v{font-size:22px;font-weight:700;margin-top:5px;font-variant-numeric:tabular-nums}
+.sub-stat-v small{font-size:11.5px;font-weight:500;color:var(--muted);margin-left:3px}
+.pack-list{display:flex;flex-direction:column;gap:12px}
+.pack-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:center;gap:14px;transition:border-color .2s,background .2s}
+.pack-card.on{border-color:rgba(124,92,255,.35);background:linear-gradient(140deg,rgba(124,92,255,.08),rgba(255,255,255,.03))}
+.pack-icon{width:46px;height:46px;flex:0 0 46px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(124,92,255,.28),rgba(255,92,138,.16));color:#c3b2ff;border:1px solid rgba(124,92,255,.25);transition:.2s}
+.pack-icon svg{width:23px;height:23px}
+.pack-card.on .pack-icon{background:linear-gradient(135deg,#7c5cff,#ff5c8a);color:#fff;border-color:transparent;box-shadow:0 8px 22px -10px rgba(124,92,255,1)}
+.pack-info{flex:1;min-width:0}
+.pack-info h3{font-size:15px;font-weight:700}
+.pack-info p{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
+.pack-meta{font-size:11px;color:var(--muted);margin-top:6px;display:inline-flex;align-items:center;gap:6px}
+.pack-meta b{color:#c3b2ff;font-weight:600}
+.pack-toggle-btn{font-family:inherit;font-size:12.5px;font-weight:600;padding:8px 18px;border-radius:99px;cursor:pointer;border:none;color:#fff;background:linear-gradient(135deg,#7c5cff,#ff5c8a);transition:.2s;white-space:nowrap;flex-shrink:0;box-shadow:0 8px 20px -10px rgba(124,92,255,1)}
+.pack-toggle-btn:active{transform:scale(.96)}
+.pack-toggle-btn.subscribed{background:rgba(124,92,255,.14);border:1px solid rgba(124,92,255,.42);color:#c3b2ff;box-shadow:none}
+.sub-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.modal{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(4,4,10,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.modal.open{display:flex;animation:modalFade .2s ease}
+@keyframes modalFade{from{opacity:0}to{opacity:1}}
+.modal-panel{width:100%;max-width:560px;max-height:calc(100vh - 36px);background:#121220;border:1px solid var(--border);border-radius:22px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 28px 80px -20px rgba(0,0,0,.95);animation:panelIn .28s cubic-bezier(.2,.8,.3,1)}
+@keyframes panelIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+.modal-panel.compact{max-width:380px}
+.modal-head{padding:18px 20px 14px;display:flex;align-items:center;gap:13px;border-bottom:1px solid var(--border);flex-shrink:0}
+.modal-head-icon{width:46px;height:46px;flex:0 0 46px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,#7c5cff,#ff5c8a);color:#fff;box-shadow:0 8px 22px -10px rgba(124,92,255,1)}
+.modal-head-icon svg{width:23px;height:23px}
+.modal-head-info{flex:1;min-width:0}
+.modal-head-info h3{font-size:16px;font-weight:700}
+.modal-head-info p{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5}
+.modal-close{width:32px;height:32px;flex:0 0 32px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);font-size:15px;cursor:pointer;transition:.2s;font-family:inherit;display:grid;place-items:center;line-height:1}
+.modal-close:hover{background:rgba(255,255,255,.12);color:var(--text)}
+.modal-body{flex:1;overflow-y:auto;padding:16px 20px 16px 16px}
+.modal-foot{padding:14px 20px 18px;display:flex;gap:10px;border-top:1px solid var(--border);flex-shrink:0}
+.modal-foot .btn-primary,.modal-foot .btn-ghost{flex:1;padding:12px 20px;text-align:center;justify-content:center}
+.pack-modal-count{font-size:12px;color:var(--muted);padding:12px 20px 0;letter-spacing:.4px}
+.pack-modal-list{display:flex;flex-direction:column;gap:9px;padding:12px 4px 18px 0}
+.pack-modal-item{display:flex;gap:11px;padding:11px 13px;border-radius:13px;background:rgba(255,255,255,.035);border:1px solid var(--border)}
+.pack-modal-item .pmi{width:22px;height:22px;flex:0 0 22px;color:#c3b2ff;display:grid;place-items:center;margin-top:1px}
+.pack-modal-item .pmi svg{width:100%;height:100%}
+.pack-modal-item .pmb{flex:1;min-width:0}
+.pack-modal-item .pmn{font-size:13.5px;font-weight:600}
+.pack-modal-item .pmd{font-size:11px;color:var(--muted);margin-top:3px}
+.pack-modal-item .pmdesc{font-size:11.5px;color:var(--muted);line-height:1.65;margin-top:7px;padding-top:7px;border-top:1px dashed rgba(255,255,255,.08)}
+.date-picker-wrap{padding:22px 20px 6px;display:flex;flex-direction:column;gap:14px;align-items:center}
+.date-input-styled{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:14px;padding:13px 16px;color:var(--text);font-family:inherit;font-size:16px;outline:none;transition:.2s;color-scheme:dark}
+.date-input-styled:focus{border-color:rgba(124,92,255,.5);background:rgba(124,92,255,.08)}
+.picker-tabs{display:flex;gap:7px;overflow-x:auto;overflow-y:hidden;padding:10px 16px 14px;touch-action:pan-x;cursor:grab;min-height:58px;align-items:center;flex-shrink:0}
+.picker-tabs:active{cursor:grabbing}
+.picker-tab{flex:0 0 auto;font-family:inherit;font-size:12.5px;padding:0 16px;border-radius:99px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);transition:background .2s,color .2s,border-color .2s;white-space:nowrap;line-height:1;height:34px;display:inline-flex;align-items:center;justify-content:center}
+.picker-tab:hover{color:var(--text);background:rgba(255,255,255,.09)}
+.picker-tab.on{background:linear-gradient(135deg,rgba(124,92,255,.9),rgba(255,92,138,.8));border-color:transparent;color:#fff;font-weight:600}
+.picker-search{padding:0 16px 12px;flex-shrink:0}
+.picker-search input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:12px;padding:10px 14px;color:var(--text);font-family:inherit;font-size:13.5px;outline:none;transition:.2s}
+.picker-search input:focus{border-color:rgba(124,92,255,.5);background:rgba(124,92,255,.08)}
+.picker-search input::placeholder{color:var(--muted)}
+.picker-list{display:flex;flex-direction:column;gap:6px;padding:0 4px 18px 0}
+.picker-item{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:12px;cursor:pointer;background:rgba(255,255,255,.03);border:1px solid transparent;transition:.18s}
+.picker-item:hover{background:rgba(124,92,255,.14);border-color:rgba(124,92,255,.3)}
+.picker-item .pi{width:22px;height:22px;flex:0 0 22px;color:#c3b2ff;display:grid;place-items:center}
+.picker-item .pi svg{width:100%;height:100%}
+.picker-item .pb{flex:1;min-width:0}
+.picker-item .pn{font-size:13.5px;font-weight:600}
+.picker-item .pd{font-size:11px;color:var(--muted);margin-top:2px}
+.picker-empty{text-align:center;padding:30px 20px;color:var(--muted);font-size:13px}
+.fest-hero{display:flex;flex-direction:column;align-items:center;gap:11px;text-align:center;padding:34px 20px 30px;margin-bottom:14px;background:linear-gradient(140deg,rgba(124,92,255,.2),rgba(255,92,138,.09) 50%,rgba(255,255,255,.03));position:relative;overflow:hidden;border:1px solid var(--border);border-radius:var(--radius)}
+.fest-hero::after{content:'';position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(255,92,138,.3),transparent 68%);top:-150px;right:-80px;filter:blur(30px);pointer-events:none}
+.fest-emoji{font-size:52px;line-height:1;display:grid;place-items:center;width:1em;height:1em;color:#c3b2ff;position:relative;z-index:1}
+.fest-emoji svg{width:100%;height:100%}
+.fest-label{font-size:13.5px;color:var(--muted);position:relative;z-index:1}
+.fest-label b{color:#c3b2ff;font-weight:600}
+.fest-countdown{position:relative;z-index:1;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1;display:flex;align-items:baseline;flex-wrap:wrap;justify-content:center;gap:2px}
+.fest-countdown .num{font-size:clamp(30px,9vw,46px);font-weight:700;background:linear-gradient(180deg,#fff 20%,#a99bff 130%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.fest-countdown small{font-size:.4em;font-weight:500;color:var(--muted);margin:0 7px 0 3px;align-self:flex-end;padding-bottom:.28em}
+.fest-date{font-size:12.5px;color:var(--muted);position:relative;z-index:1}
+.fest-desc-hero{position:relative;z-index:1;font-size:12.5px;color:var(--muted);line-height:1.75;max-width:520px;margin-top:4px}
+.fest-list{display:flex;flex-direction:column;gap:9px}
+.fest-item{padding:12px 15px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--border);transition:background .2s,border-color .2s;cursor:pointer}
+.fest-item:hover{background:rgba(255,255,255,.075);border-color:rgba(255,255,255,.16)}
+.fest-item.open{background:rgba(124,92,255,.08);border-color:rgba(124,92,255,.25)}
+.fi-row{display:flex;align-items:center;gap:13px}
+.fest-item .fi-icon{font-size:22px;line-height:1;width:28px;text-align:center;flex:0 0 28px;color:#c3b2ff;display:grid;place-items:center}
+.fest-item .fi-icon svg{width:1em;height:1em}
+.fest-item .fi-body{flex:1;min-width:0}
+.fest-item .fi-name{font-size:14px;font-weight:600}
+.fest-item .fi-date{font-size:11.5px;color:var(--muted);margin-top:3px}
+.fest-item .fi-days{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;color:#c3b2ff;white-space:nowrap;flex-shrink:0}
+.fest-item .fi-days small{font-size:10px;font-weight:500;color:var(--muted);margin-left:2px}
+.fest-item .fi-days.today{color:var(--ok)}
+.fi-desc{max-height:0;overflow:hidden;transition:max-height .3s ease,margin-top .3s ease;font-size:12px;color:var(--muted);line-height:1.7;padding-left:41px}
+.fest-item.open .fi-desc{max-height:200px;margin-top:9px}
+.empty-hint{text-align:center;padding:26px 20px;color:var(--muted);font-size:13px;line-height:1.8}
+.sign-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:6px;touch-action:pan-x;cursor:grab}
+.sign-scroll:active{cursor:grabbing}
+.sign-chip{flex:0 0 auto;font-family:inherit;font-size:12.5px;padding:7px 14px;border-radius:99px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);transition:.2s;white-space:nowrap}
+.sign-chip:hover{color:var(--text);background:rgba(255,255,255,.09)}
+.sign-chip.on{background:linear-gradient(135deg,rgba(124,92,255,.9),rgba(255,92,138,.8));border-color:transparent;color:#fff;font-weight:600}
+.fortune-hero{display:flex;align-items:center;gap:26px;background:linear-gradient(140deg,rgba(124,92,255,.14),rgba(255,92,138,.06) 55%,rgba(255,255,255,.03));margin-bottom:14px}
+.score-ring{width:142px;height:142px;flex:0 0 142px;border-radius:50%;display:grid;place-items:center;position:relative;transition:background .6s ease}
+.score-ring::before{content:'';position:absolute;inset:11px;border-radius:50%;background:#13131f}
+.ring-inner{position:relative;z-index:1;text-align:center;display:flex;flex-direction:column;gap:2px}
+.ring-inner span{font-size:38px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;background:linear-gradient(140deg,#fff,#b9a4ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ring-inner small{font-size:11px;color:var(--muted);letter-spacing:1px}
+.hero-text{flex:1;min-width:0}
+.stars{font-size:15px;letter-spacing:2px;color:var(--warn);margin-bottom:8px}
+.stars .off{color:rgba(255,255,255,.14)}
+.hero-text h3{font-size:21px;font-weight:700;margin-bottom:8px;letter-spacing:-.3px}
+.hero-text p{font-size:13.5px;color:var(--muted);line-height:1.75}
+.bars{display:flex;flex-direction:column;gap:15px}
+.bar-row{display:flex;flex-direction:column;gap:8px}
+.bar-top{display:flex;justify-content:space-between;font-size:12.5px}
+.bar-top span{color:var(--muted)}
+.bar-top b{font-variant-numeric:tabular-nums;font-weight:600}
+.bar-bg{height:7px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;width:0;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.f-love{background:linear-gradient(90deg,#ff5c8a,#ff9ab5)}
+.f-work{background:linear-gradient(90deg,#7c5cff,#b9a4ff)}
+.f-money{background:linear-gradient(90deg,#ffb84d,#ffd98f)}
+.f-health{background:linear-gradient(90deg,#3ddc97,#8ff0c4)}
+.lucky-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.lucky-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:13px;padding:11px 13px}
+.lucky-item .k{font-size:11px;color:var(--muted);display:block;letter-spacing:.4px;font-style:normal}
+.lucky-item .v{font-size:13.5px;font-weight:600;margin-top:3px;display:block}
+.swatch{width:26px;height:26px;flex:0 0 26px;border-radius:9px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff}
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{font-size:12.5px;padding:6px 13px;border-radius:99px;border:1px solid transparent}
+.tags-ok .tag{background:rgba(61,220,151,.1);border-color:rgba(61,220,151,.28);color:#7ce9b8}
+.tags-bad .tag{background:rgba(255,92,138,.1);border-color:rgba(255,92,138,.28);color:#ff9ab5}
+.preset-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:2px;touch-action:pan-x;cursor:grab}
+.preset-scroll:active{cursor:grabbing}
+.preset-chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:5px;font-family:inherit;font-size:11.5px;color:var(--muted);padding:10px 13px;border-radius:14px;cursor:pointer;background:rgba(255,255,255,.04);border:1px solid var(--border);transition:.2s;white-space:nowrap;min-width:66px}
+.preset-chip .pi{font-size:19px;line-height:1;display:grid;place-items:center;width:1em;height:1em}
+.preset-chip .pi svg{width:100%;height:100%}
+.preset-chip:hover{background:rgba(255,255,255,.08);color:var(--text)}
+.preset-chip.on{background:linear-gradient(135deg,rgba(124,92,255,.9),rgba(255,92,138,.75));border-color:transparent;color:#fff;font-weight:600;box-shadow:0 8px 20px -10px rgba(124,92,255,1)}
+.preset-chip:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.time-input-row{display:flex;align-items:center;gap:10px;justify-content:center;margin:16px 0 12px;flex-wrap:wrap}
+.time-field{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:14px;padding:7px 14px;transition:.2s}
+.time-field:focus-within{border-color:rgba(124,92,255,.5);background:rgba(124,92,255,.07)}
+.time-field input{width:56px;background:transparent;border:none;outline:none;color:var(--text);font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;text-align:center}
+.time-field input::-webkit-outer-spin-button,.time-field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.time-field input[type=number]{-moz-appearance:textfield}
+.time-field input:disabled{color:var(--muted)}
+.time-field span{font-size:12px;color:var(--muted)}
+.preview-line{text-align:center;font-size:12.5px;color:var(--muted);line-height:1.7;min-height:22px}
+.preview-line b{color:#c3b2ff;font-weight:600}
+.preview-line .sep-dot{margin:0 7px;opacity:.4}
+.timer-display-card{text-align:center;padding:28px 20px 24px;margin-top:14px}
+.timer-big{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:clamp(52px,17vw,98px);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1;margin-bottom:20px;background:linear-gradient(180deg,#fff 20%,#a99bff 130%);-webkit-background-clip:text;background-clip:text;color:transparent;transition:opacity .2s}
+.timer-big.done{animation:flashDone .7s ease-in-out infinite}
+@keyframes flashDone{0%,100%{opacity:1}50%{opacity:.25}}
+.timer-progress{height:5px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:6px}
+.timer-progress > div{height:100%;border-radius:99px;width:100%;background:linear-gradient(90deg,#7c5cff,#ff5c8a);transition:width .12s linear}
+.timer-btns{display:flex;gap:10px;justify-content:center;margin-top:22px}
+.btn-primary{font-family:inherit;font-size:14px;font-weight:600;color:#fff;background:linear-gradient(135deg,#7c5cff,#ff5c8a);border:none;padding:12px 36px;border-radius:14px;cursor:pointer;box-shadow:0 10px 26px -12px rgba(124,92,255,1);transition:transform .15s,box-shadow .2s,opacity .2s;display:inline-flex;align-items:center;justify-content:center}
+.btn-primary:hover{box-shadow:0 12px 30px -10px rgba(124,92,255,1)}
+.btn-primary:active{transform:scale(.96)}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+.btn-ghost{font-family:inherit;font-size:14px;font-weight:500;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid var(--border);padding:12px 26px;border-radius:14px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;justify-content:center}
+.btn-ghost:hover{background:rgba(255,255,255,.1);color:var(--text)}
+.btn-ghost:active{transform:scale(.96)}
+.author-profile{display:flex;flex-direction:column;align-items:center;gap:14px;padding:34px 20px 28px;text-align:center;position:relative;overflow:hidden;background:linear-gradient(140deg,rgba(124,92,255,.18),rgba(255,92,138,.08) 55%,rgba(255,255,255,.03));border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px}
+.author-profile::after{content:'';position:absolute;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(124,92,255,.35),transparent 68%);top:-140px;left:-60px;filter:blur(30px);pointer-events:none}
+.author-avatar{width:86px;height:86px;border-radius:26px;display:grid;place-items:center;font-size:38px;font-weight:900;color:#fff;background:linear-gradient(135deg,#7c5cff,#ff5c8a);box-shadow:0 16px 40px -12px rgba(124,92,255,1);position:relative;z-index:1;letter-spacing:-2px}
+.author-name{font-size:22px;font-weight:800;letter-spacing:-.4px;position:relative;z-index:1}
+.author-tag{font-size:13px;color:var(--muted);position:relative;z-index:1;max-width:420px;line-height:1.75}
+.author-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.author-link{display:flex;align-items:center;gap:13px;padding:16px 18px;border-radius:16px;background:var(--panel);border:1px solid var(--border);text-decoration:none;color:var(--text);transition:background .2s,border-color .2s,transform .2s}
+.author-link:hover{background:rgba(124,92,255,.1);border-color:rgba(124,92,255,.35);transform:translateY(-2px)}
+.author-link:active{transform:scale(.98)}
+.author-link-icon{width:44px;height:44px;flex:0 0 44px;border-radius:13px;display:grid;place-items:center;color:#fff;box-shadow:0 8px 20px -10px rgba(0,0,0,.6)}
+.author-link-icon svg{width:22px;height:22px}
+.author-link-body{flex:1;min-width:0}
+.author-link-body b{font-size:14px;font-weight:700;display:block}
+.author-link-body span{font-size:11.5px;color:var(--muted);display:block;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.author-link .arrow{width:16px;height:16px;flex:0 0 16px;color:var(--muted);opacity:.6}
+.bg-shop{background:linear-gradient(135deg,#7c5cff,#a67cff)}
+.bg-blog{background:linear-gradient(135deg,#ff5c8a,#ff8fb1)}
+.bg-qq{background:linear-gradient(135deg,#2fd8ff,#7c5cff)}
+.bg-bug{background:linear-gradient(135deg,#ffb84d,#ff7a45)}
+.author-note{margin-top:16px;padding:16px 18px;border-radius:14px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.1);font-size:12.5px;color:var(--muted);line-height:1.85}
+.author-note b{color:#c3b2ff}
+.ai-fab{position:fixed;right:24px;bottom:24px;z-index:80;width:58px;height:58px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,#7c5cff,#ff5c8a);color:#fff;display:grid;place-items:center;box-shadow:0 14px 34px -10px rgba(124,92,255,1),0 0 0 0 rgba(124,92,255,.5);transition:transform .2s,box-shadow .2s;animation:aiPulse 2.6s ease-in-out infinite;font-family:inherit}
+.ai-fab-text{font-size:19px;font-weight:800;letter-spacing:.5px;line-height:1}
+.ai-fab:hover{transform:scale(1.08);box-shadow:0 16px 40px -8px rgba(124,92,255,1)}
+.ai-fab:active{transform:scale(.94)}
+.ai-fab::after{content:'';position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(124,92,255,.35);animation:aiRing 2.6s ease-out infinite;pointer-events:none}
+@keyframes aiPulse{0%,100%{box-shadow:0 14px 34px -10px rgba(124,92,255,1),0 0 0 0 rgba(124,92,255,.45)}50%{box-shadow:0 14px 34px -10px rgba(124,92,255,1),0 0 0 10px rgba(124,92,255,0)}}
+@keyframes aiRing{0%{transform:scale(.85);opacity:.9}100%{transform:scale(1.5);opacity:0}}
+.ai-modal{position:fixed;inset:0;z-index:250;display:none;align-items:flex-end;justify-content:flex-end;padding:20px;background:rgba(4,4,10,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.ai-modal.open{display:flex;animation:modalFade .22s ease}
+.ai-chat{width:430px;max-width:100%;height:620px;max-height:calc(100vh - 40px);background:#121220;border:1px solid var(--border);border-radius:22px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 28px 80px -20px rgba(0,0,0,.95);animation:aiChatIn .3s cubic-bezier(.2,.7,.3,1)}
+@keyframes aiChatIn{from{opacity:0;transform:translateY(28px) scale(.96)}to{opacity:1;transform:none}}
+.ai-header{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);flex-shrink:0;background:linear-gradient(180deg,rgba(124,92,255,.1),transparent)}
+.ai-avatar{width:38px;height:38px;flex:0 0 38px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,#7c5cff,#ff5c8a);color:#fff;font-size:15px;font-weight:800;letter-spacing:.4px;box-shadow:0 8px 22px -10px rgba(124,92,255,1)}
+.ai-header-info{flex:1;min-width:0}
+.ai-header-info h3{font-size:15px;font-weight:700;display:flex;align-items:center;gap:2px;flex-wrap:wrap}
+.ai-header-info p{font-size:11px;color:var(--muted);margin-top:2px}
+.ai-close-btn{width:30px;height:30px;flex:0 0 30px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);font-size:14px;cursor:pointer;transition:.2s;font-family:inherit;display:grid;place-items:center;line-height:1}
+.ai-close-btn:hover{background:rgba(255,255,255,.12);color:var(--text)}
+.ai-quota{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:500;color:#c3b2ff;background:rgba(124,92,255,.15);border:1px solid rgba(124,92,255,.3);padding:2px 8px;border-radius:99px;margin-left:6px;vertical-align:middle;letter-spacing:.2px;transition:.2s}
+.ai-quota.low{color:#ff9ab5;background:rgba(255,92,138,.12);border-color:rgba(255,92,138,.3)}
+.ai-quota.empty{color:#5d6070;background:rgba(255,255,255,.05);border-color:var(--border)}
+.ai-messages{flex:1;overflow-y:auto;padding:16px 16px 8px 16px;display:flex;flex-direction:column;gap:14px}
+.ai-msg{display:flex;gap:8px;max-width:100%;animation:msgIn .3s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.ai-msg.user{justify-content:flex-end}
+.ai-msg.ai{justify-content:flex-start}
+.ai-bubble{max-width:82%;padding:11px 15px;border-radius:16px;font-size:13.5px;line-height:1.7;word-break:break-word;white-space:pre-wrap}
+.ai-msg.ai .ai-bubble{background:rgba(255,255,255,.055);border:1px solid var(--border);border-bottom-left-radius:5px;color:var(--text)}
+.ai-msg.user .ai-bubble{background:linear-gradient(135deg,#7c5cff,#ff5c8a);color:#fff;border-bottom-right-radius:5px;box-shadow:0 8px 22px -12px rgba(124,92,255,1)}
+.ai-msg.thinking .ai-bubble{background:linear-gradient(135deg,rgba(124,92,255,.15),rgba(255,92,138,.1));border:1px solid rgba(124,92,255,.3);color:#c3b2ff;display:inline-flex;align-items:center;gap:8px}
+.ai-thinking-text{display:inline-block}
+.ai-thinking-dots{display:inline-flex;gap:3px;margin-left:2px}
+.ai-thinking-dots span{width:4px;height:4px;border-radius:50%;background:#c3b2ff;animation:thinkDot 1.2s infinite}
+.ai-thinking-dots span:nth-child(2){animation-delay:.2s}
+.ai-thinking-dots span:nth-child(3){animation-delay:.4s}
+@keyframes thinkDot{0%,60%,100%{opacity:.3;transform:scale(.7)}30%{opacity:1;transform:scale(1)}}
+.ai-answer{white-space:normal}
+.ai-answer-date{font-size:13.5px;font-weight:600;margin-bottom:6px}
+.ai-answer-lunar{font-size:12.5px;color:var(--muted);margin-bottom:10px}
+.ai-fest-hit{margin-top:10px;padding:11px 13px;border-radius:12px;background:rgba(124,92,255,.1);border:1px solid rgba(124,92,255,.22)}
+.ai-fest-hit + .ai-fest-hit{margin-top:8px}
+.ai-fest-name{font-size:13.5px;font-weight:700;color:#d1c5ff;margin-bottom:5px}
+.ai-fest-desc{font-size:12px;color:var(--muted);line-height:1.7}
+.ai-no-fest{font-size:12.5px;color:var(--muted);padding:8px 0;font-style:italic}
+.ai-error-out{color:#ff9ab5;font-style:normal;font-size:13px;line-height:1.8}
+.ai-error-out b{color:#c3b2ff;font-weight:700}
+.ai-countdown-num{font-size:15px;margin:8px 0 6px;color:var(--text)}
+.ai-countdown-num b{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;margin:0 4px;background:linear-gradient(140deg,#fff,#b9a4ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ai-countdown-num.today{color:var(--ok);font-size:18px;font-weight:700}
+.ai-help-title{font-size:13.5px;font-weight:700;margin-bottom:8px}
+.ai-help-item{font-size:12.5px;color:var(--muted);padding:5px 0;line-height:1.65}
+.ai-help-hint{font-size:11.5px;color:#5d6070;margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.08)}
+.ai-year-card{display:flex;flex-direction:column;gap:10px}
+.ai-year-title{font-size:18px;font-weight:800;letter-spacing:-.3px;background:linear-gradient(140deg,#fff,#b9a4ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ai-year-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px}
+.ai-year-item{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:11px;padding:9px 11px}
+.ai-year-item span{font-size:10.5px;color:var(--muted);display:block;letter-spacing:.4px}
+.ai-year-item b{font-size:14.5px;font-weight:700;display:block;margin-top:3px;color:#d1c5ff}
+.ai-quick-row{display:flex;gap:7px;overflow-x:auto;padding:10px 16px 4px;flex-shrink:0;touch-action:pan-x;cursor:grab}
+.ai-quick-row:active{cursor:grabbing}
+.ai-chip{flex:0 0 auto;font-family:inherit;font-size:12px;padding:7px 13px;border-radius:99px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);transition:.2s;white-space:nowrap}
+.ai-chip:hover{background:rgba(124,92,255,.18);border-color:rgba(124,92,255,.4);color:#c3b2ff}
+.ai-chip:disabled{opacity:.4;cursor:not-allowed}
+.ai-input-row{display:flex;gap:8px;padding:10px 16px 16px;flex-shrink:0;align-items:center}
+.ai-input-row input{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:14px;padding:11px 16px;color:var(--text);font-family:inherit;font-size:13.5px;outline:none;transition:.2s}
+.ai-input-row input:focus{border-color:rgba(124,92,255,.5);background:rgba(124,92,255,.08)}
+.ai-input-row input::placeholder{color:#5d6070}
+.ai-input-row input:disabled{opacity:.5;cursor:not-allowed}
+.ai-send-btn{width:44px;height:44px;flex:0 0 44px;border-radius:14px;border:none;cursor:pointer;background:linear-gradient(135deg,#7c5cff,#ff5c8a);color:#fff;display:grid;place-items:center;transition:.2s;box-shadow:0 8px 22px -12px rgba(124,92,255,1)}
+.ai-send-btn:hover{box-shadow:0 10px 26px -10px rgba(124,92,255,1)}
+.ai-send-btn:active{transform:scale(.94)}
+.ai-send-btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;transform:none}
+.ai-send-btn svg{width:19px;height:19px}
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%) translateY(20px);background:rgba(28,28,42,.96);border:1px solid var(--border);color:var(--text);padding:13px 24px;border-radius:14px;font-size:13.5px;z-index:999;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;max-width:82vw;text-align:center;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 18px 44px -14px rgba(0,0,0,.9);line-height:1.6}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ==================================================
+   响应式断点 —— 从大到小
+================================================== */
+/* ① 超宽屏：≥1440px，内容更舒展 */
+@media (min-width:1440px){
+  :root{--sidebar-w:260px;--main-pad-x:44px;--main-pad-y:34px}
+  .app{max-width:1400px}
+  .grid-4{grid-template-columns:repeat(4,1fr);gap:16px}
+  .card{padding:22px}
+  .clock{font-size:clamp(56px,8vw,110px)}
+  .author-links{grid-template-columns:repeat(4,1fr)}
+}
+/* ② 大屏：1200 ~ 1439px，默认状态 */
+@media (min-width:1200px) and (max-width:1439px){
+  .app{max-width:1280px}
+}
+/* ③ 中屏：1000 ~ 1199px，侧边栏略窄 */
+@media (min-width:1000px) and (max-width:1199px){
+  :root{--sidebar-w:220px;--main-pad-x:24px}
+  .app{max-width:1100px}
+  .grid-4{grid-template-columns:repeat(4,1fr);gap:12px}
+  .stat{padding:14px}
+  .stat-v{font-size:22px}
+  .author-links{grid-template-columns:repeat(2,1fr)}
+}
+/* ④ 小屏桌面 / 大平板横屏：860 ~ 999px，侧边栏保留但更紧凑 */
+@media (min-width:860px) and (max-width:999px){
+  :root{--sidebar-w:190px;--main-pad-x:20px;--main-pad-y:22px}
+  .app{max-width:100%}
+  .sidebar{padding:22px 12px}
+  .brand h1{font-size:14.5px}
+  .nav-btn{padding:10px 11px;font-size:13px;gap:9px}
+  .nav-btn .ico{width:17px;height:17px;flex:0 0 17px}
+  .grid-4{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .grid-2{grid-template-columns:1fr}
+  .fortune-hero{flex-direction:column;gap:20px;text-align:center;padding:22px 18px}
+  .hero-text p{text-align:left}
+  .score-ring{width:130px;height:130px;flex:0 0 130px}
+  .score-ring::before{inset:10px}
+  .author-links{grid-template-columns:1fr}
+}
+/* ⑤ 平板竖屏 / 手机横屏：600 ~ 859px，侧边栏变顶部横向导航 */
+@media (max-width:859px){
+  :root{--main-pad-x:16px;--main-pad-y:16px}
+  .app{grid-template-columns:1fr;max-width:100%}
+  .sidebar{
+    position:sticky;top:0;height:auto;z-index:30;
+    flex-direction:column;gap:10px;
+    padding:11px 14px 10px;
+    border-right:none;border-bottom:1px solid var(--border);
+    background:rgba(10,10,18,.86);
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    overflow:visible;
+    min-width:0;max-width:100%;
+  }
+  .brand{padding:0}
+  .logo{width:30px;height:30px;flex:0 0 30px;border-radius:10px;font-size:15px}
+  .brand h1{font-size:14px}
+  .brand p{display:none}
+  .nav{
+    flex-direction:row;gap:8px;
+    overflow-x:auto;overflow-y:hidden;
+    padding:2px 2px 5px;
+    touch-action:pan-x;cursor:grab;
+    flex-wrap:nowrap;
+  }
+  .nav:active{cursor:grabbing}
+  .nav-btn{
+    width:auto;flex:0 0 auto;
+    padding:9px 14px;font-size:13px;gap:7px;border-radius:11px;
+    min-height:38px;
+  }
+  .nav-btn .ico{width:16px;height:16px;flex:0 0 16px}
+  .side-foot{display:none}
+  .main{padding:16px 14px 100px}
+  .view-head h2{font-size:20px}
+  .grid-2{grid-template-columns:1fr;gap:12px}
+  .grid-4{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .card{padding:16px;border-radius:16px}
+  .clock-card{padding:16px 16px 22px}
+  .clock{font-size:clamp(42px,12vw,72px)}
+  .clock-date{font-size:14px}
+  .stat{padding:14px 15px}
+  .stat-v{font-size:23px}
+  .cal-cell{min-height:52px;border-radius:10px}
+  .cal-cell .cd{font-size:14px}
+  .cal-cell .cl{font-size:9px}
+  .fortune-hero{flex-direction:column;gap:18px;text-align:center;padding:22px 16px}
+  .hero-text p{text-align:left}
+  .dd-grid{grid-template-columns:repeat(2,1fr)}
+  .dd-day{font-size:38px;min-width:62px}
+  .timer-display-card{padding:24px 16px 22px}
+  .timer-big{font-size:clamp(56px,16vw,84px)}
+  .fest-hero{padding:26px 16px 24px}
+  .ai-fab{width:52px;height:52px;right:16px;bottom:16px}
+  .ai-fab-text{font-size:17px}
+  .pack-card{padding:15px 16px;gap:12px}
+  .pack-icon{width:40px;height:40px;flex:0 0 40px}
+  .pack-icon svg{width:20px;height:20px}
+  .pack-info h3{font-size:14px}
+  .pack-toggle-btn{padding:7px 14px;font-size:12px}
+  .author-links{grid-template-columns:1fr}
+  .author-profile{padding:26px 16px 22px}
+  .author-avatar{width:72px;height:72px;font-size:32px;border-radius:22px}
+  .author-name{font-size:19px}
+  .sub-stat{min-width:calc(50% - 6px);padding:12px 14px}
+  .sub-stat-v{font-size:19px}
+  .ai-modal{padding:0;align-items:stretch;justify-content:stretch}
+  .ai-chat{width:100%;height:100%;max-height:100vh;border-radius:0;border:none}
+  .modal{padding:12px}
+  .modal-panel{max-height:calc(100vh - 24px);border-radius:20px}
+  .modal-panel.compact{max-width:100%}
+  .lucky-grid{grid-template-columns:repeat(2,1fr)}
+}
+/* ⑥ 手机竖屏：400 ~ 599px */
+@media (max-width:599px){
+  .main{padding:14px 12px 100px}
+  .view-head{margin-bottom:14px}
+  .view-head h2{font-size:18.5px}
+  .view-head p{font-size:12px}
+  .card{padding:14px;border-radius:15px}
+  .card-title{font-size:12px;margin-bottom:11px}
+  .grid{gap:10px}
+  .grid-2,.grid-4{gap:10px}
+  .clock-card{padding:14px 14px 18px}
+  .clock{font-size:clamp(38px,11.5vw,56px);margin:14px 0 8px}
+  .clock-date{font-size:13px}
+  .clock-lunar{font-size:11.5px}
+  .pill{font-size:11px;padding:4px 9px}
+  .ghost-btn{font-size:11.5px;padding:5px 11px}
+  .stat{padding:12px 13px;gap:5px}
+  .stat-k{font-size:11px}
+  .stat-v{font-size:20px}
+  .cal-bar{gap:8px;margin-bottom:13px}
+  .cal-title{font-size:15px}
+  .icon-btn{width:30px;height:30px;flex:0 0 30px;font-size:15px}
+  .cal-cell{min-height:46px;border-radius:9px;padding:5px 2px}
+  .cal-cell .cd{font-size:13px}
+  .cal-cell .cl{font-size:8.5px}
+  .dd-head{gap:14px;padding-bottom:13px}
+  .dd-day{font-size:34px;min-width:54px}
+  .dd-solar{font-size:14px}
+  .dd-lunar{font-size:11.5px}
+  .dd-grid{gap:10px;padding-top:13px}
+  .dd-grid b{font-size:12.5px}
+  .fortune-hero{padding:18px 14px;gap:14px}
+  .score-ring{width:118px;height:118px;flex:0 0 118px}
+  .score-ring::before{inset:9px}
+  .ring-inner span{font-size:32px}
+  .hero-text h3{font-size:18px}
+  .hero-text p{font-size:12.5px}
+  .lucky-grid{grid-template-columns:1fr;gap:9px}
+  .lucky-item{padding:9px 11px}
+  .timer-display-card{padding:22px 14px 20px}
+  .timer-big{font-size:clamp(52px,15vw,72px);margin-bottom:16px}
+  .btn-primary,.btn-ghost{padding:11px 24px;font-size:13.5px;border-radius:12px}
+  .time-input-row{gap:8px;margin:13px 0 11px}
+  .time-field{padding:6px 12px;border-radius:12px}
+  .time-field input{width:48px;font-size:21px}
+  .fest-hero{padding:22px 14px 20px}
+  .fest-emoji{font-size:42px}
+  .fest-countdown .num{font-size:clamp(26px,7.5vw,36px)}
+  .fest-countdown small{font-size:.42em;margin:0 5px 0 2px}
+  .fest-item{padding:11px 13px;border-radius:12px}
+  .fest-item .fi-icon{width:24px;flex:0 0 24px;font-size:19px}
+  .fest-item .fi-name{font-size:13px}
+  .fest-item .fi-days{font-size:14px}
+  .fi-desc{padding-left:36px;font-size:11.5px}
+  .sign-chip,.preset-chip{font-size:11.5px}
+  .sign-chip{padding:6px 12px}
+  .preset-chip{padding:9px 11px;min-width:60px}
+  .preset-chip .pi{font-size:17px}
+  .pack-card{padding:13px 14px;gap:10px;flex-wrap:wrap}
+  .pack-icon{width:36px;height:36px;flex:0 0 36px;border-radius:11px}
+  .pack-icon svg{width:18px;height:18px}
+  .pack-info h3{font-size:13.5px}
+  .pack-info p{font-size:11.5px}
+  .pack-toggle-btn{padding:6px 13px;font-size:11.5px}
+  .sub-actions{flex-direction:column}
+  .sub-actions .btn-primary,.sub-actions .btn-ghost{width:100%}
+  .modal-head{padding:14px 16px 12px;gap:11px}
+  .modal-head-icon{width:40px;height:40px;flex:0 0 40px;border-radius:11px}
+  .modal-head-icon svg{width:20px;height:20px}
+  .modal-head-info h3{font-size:14.5px}
+  .modal-head-info p{font-size:11.5px}
+  .modal-body{padding:13px 16px 13px 13px}
+  .modal-foot{padding:12px 16px 14px;gap:8px}
+  .modal-foot .btn-primary,.modal-foot .btn-ghost{padding:11px 16px;font-size:13px}
+  .pack-modal-list{padding:10px 4px 15px 0}
+  .pack-modal-item{padding:10px 11px}
+  .picker-tabs{padding:8px 14px 12px;min-height:52px}
+  .picker-tab{height:31px;font-size:12px;padding:0 14px}
+  .picker-search{padding:0 14px 10px}
+  .picker-list{padding:0 4px 15px 0}
+  .picker-item{padding:10px 12px}
+  .picker-item .pn{font-size:12.5px}
+  .date-picker-wrap{padding:18px 16px 6px}
+  .date-input-styled{padding:11px 14px;font-size:15px}
+  .author-profile{padding:22px 14px 18px;gap:11px}
+  .author-avatar{width:64px;height:64px;font-size:28px;border-radius:20px}
+  .author-name{font-size:17px}
+  .author-tag{font-size:12px}
+  .author-link{padding:13px 14px;gap:11px;border-radius:14px}
+  .author-link-icon{width:38px;height:38px;flex:0 0 38px;border-radius:11px}
+  .author-link-icon svg{width:19px;height:19px}
+  .author-link-body b{font-size:13px}
+  .author-link-body span{font-size:11px}
+  .author-note{padding:13px 14px;font-size:11.5px}
+  .ai-header{padding:13px 14px;gap:10px}
+  .ai-avatar{width:34px;height:34px;flex:0 0 34px;border-radius:10px;font-size:14px}
+  .ai-header-info h3{font-size:14px}
+  .ai-header-info p{font-size:10.5px}
+  .ai-quota{font-size:10px;padding:2px 7px}
+  .ai-messages{padding:13px 13px 6px 13px;gap:12px}
+  .ai-bubble{font-size:13px;padding:10px 13px;border-radius:14px}
+  .ai-msg.user .ai-bubble{border-bottom-right-radius:4px}
+  .ai-msg.ai .ai-bubble{border-bottom-left-radius:4px}
+  .ai-quick-row{padding:8px 14px 3px;gap:6px}
+  .ai-chip{font-size:11.5px;padding:6px 11px}
+  .ai-input-row{padding:9px 14px 14px;gap:7px}
+  .ai-input-row input{padding:10px 14px;font-size:13px;border-radius:12px}
+  .ai-send-btn{width:40px;height:40px;flex:0 0 40px;border-radius:12px}
+  .ai-send-btn svg{width:17px;height:17px}
+  .ai-fab{width:50px;height:50px;right:14px;bottom:14px}
+  .ai-fab-text{font-size:16px}
+  .ai-year-grid{grid-template-columns:1fr 1fr;gap:7px}
+  .ai-year-item{padding:8px 10px}
+  .ai-year-item b{font-size:13px}
+  .ai-year-title{font-size:16px}
+  .toast{bottom:80px;font-size:12.5px;padding:11px 20px;border-radius:12px}
+}
+/* ⑦ 小手机：<400px */
+@media (max-width:399px){
+  .main{padding:12px 10px 100px}
+  .view-head h2{font-size:17px}
+  .card{padding:12px;border-radius:14px}
+  .clock{font-size:clamp(32px,11vw,46px)}
+  .clock-date{font-size:12px}
+  .grid-4{grid-template-columns:1fr 1fr;gap:8px}
+  .stat{padding:10px 11px}
+  .stat-v{font-size:18px}
+  .stat-v small{font-size:10.5px}
+  .cal-cell{min-height:42px;border-radius:8px}
+  .cal-cell .cd{font-size:12px}
+  .cal-cell .cl{font-size:8px}
+  .dd-head{gap:11px}
+  .dd-day{font-size:30px;min-width:46px}
+  .dd-solar{font-size:13px}
+  .dd-grid{grid-template-columns:1fr 1fr}
+  .fortune-hero{padding:16px 12px;gap:12px}
+  .score-ring{width:104px;height:104px;flex:0 0 104px}
+  .score-ring::before{inset:8px}
+  .ring-inner span{font-size:28px}
+  .ring-inner small{font-size:10px}
+  .hero-text h3{font-size:16.5px}
+  .hero-text p{font-size:12px;line-height:1.65}
+  .timer-big{font-size:clamp(46px,14vw,64px)}
+  .timer-btns{flex-direction:column;gap:8px}
+  .timer-btns .btn-primary,.timer-btns .btn-ghost{width:100%;padding:12px 20px}
+  .fest-emoji{font-size:36px}
+  .fest-countdown .num{font-size:clamp(22px,7vw,30px)}
+  .fest-countdown small{font-size:.45em;margin:0 4px 0 2px}
+  .fest-label{font-size:12.5px}
+  .fest-date{font-size:11.5px}
+  .sub-stat{min-width:100%}
+  .author-avatar{width:56px;height:56px;font-size:24px;border-radius:18px}
+  .author-name{font-size:15.5px}
+  .author-tag{font-size:11.5px}
+  .author-link{padding:11px 12px}
+  .author-link-icon{width:34px;height:34px;flex:0 0 34px}
+  .author-link-icon svg{width:17px;height:17px}
+  .author-link-body b{font-size:12.5px}
+  .ai-bubble{max-width:88%;font-size:12.5px}
+  .ai-year-grid{grid-template-columns:1fr}
+  .modal{padding:8px}
+  .modal-panel{max-height:calc(100vh - 16px);border-radius:16px}
+  .toast{bottom:70px;font-size:12px;padding:10px 16px;max-width:88vw}
+}
+/* ⑧ 横屏手机：高度小的场景 */
+@media (max-height:520px) and (orientation:landscape){
+  .sidebar{padding:8px 12px 6px;gap:7px}
+  .brand{display:none}
+  .main{padding:12px 14px 60px}
+  .ai-chat{height:calc(100vh - 20px);max-height:calc(100vh - 20px)}
+  .ai-modal{padding:10px}
+  .clock{font-size:clamp(32px,9vw,52px);margin:10px 0 6px}
+  .clock-card{padding:12px 14px 16px}
+}
+/* ⑨ 刘海屏 / 全面屏安全区适配 */
+@supports (padding: env(safe-area-inset-top)) {
+  @media (min-width:600px){
+    .ai-modal{padding-bottom:max(20px, env(safe-area-inset-bottom))}
+    .ai-fab{bottom:max(24px, env(safe-area-inset-bottom))}
+    .toast{bottom:max(100px, env(safe-area-inset-bottom))}
+  }
+  @media (max-width:859px){
+    .sidebar{padding-top:max(11px, env(safe-area-inset-top));padding-bottom:max(10px, env(safe-area-inset-bottom))}
+    .main{padding-bottom:max(100px, calc(env(safe-area-inset-bottom) + 88px))}
+  }
+  @media (max-width:599px){
+    .ai-fab{bottom:max(14px, env(safe-area-inset-bottom))}
+    .toast{bottom:max(80px, calc(env(safe-area-inset-bottom) + 70px))}
+    .ai-header{padding-top:calc(13px + env(safe-area-inset-top, 0px))}
+    .ai-input-row{padding-bottom:calc(14px + env(safe-area-inset-bottom, 0px))}
+  }
+}
+/* ⑩ 打印样式（防止打印时背景丢失） */
+@media print{
+  body{background:#fff;color:#000}
+  .sidebar,.ai-fab,.ai-modal,.toast{display:none!important}
+  .app{display:block}
+  .main{padding:0}
+}
+</style>
+</head>
+<body>
+<div class="orbs"><i></i><i></i><i></i></div>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">七</div>
+      <div>
+        <h1>小七工具箱</h1>
+        <p>XIAOQI TOOLBOX</p>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="nav-btn active" data-view="time">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.2 1.9"/></svg></span>
+        <span>北京时间</span>
+      </button>
+      <button class="nav-btn" data-view="cal">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span>
+        <span>万年历</span>
+      </button>
+      <button class="nav-btn" data-view="timer">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.4 1.6M9 2h6M12 5V2"/></svg></span>
+        <span>倒计时</span>
+      </button>
+      <button class="nav-btn" data-view="festival">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4 4.4.6-3.2 3.1.8 4.4L12 13l-3.9 2.1.8-4.4L5.7 7.6l4.4-.6z"/><path d="M12 17.5V21M9 21h6"/></svg></span>
+        <span>节日倒计时</span>
+      </button>
+      <button class="nav-btn" data-view="subscribe">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
+        <span>订阅日历</span>
+      </button>
+      <button class="nav-btn" data-view="fortune">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.3 4.9 5 .7-3.7 3.6.9 5.1-4.5-2.5-4.5 2.5.9-5.1L4.7 8.6l5-.7z"/></svg></span>
+        <span>今日运势</span>
+      </button>
+      <button class="nav-btn" data-view="author">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></span>
+        <span>网站作者</span>
+      </button>
+    </nav>
+    <div class="side-foot">小七工具箱 v1.8<br>本地计算 · 数据不上传</div>
+  </aside>
+  <main class="main">
+    <section class="view active" id="view-time">
+      <div class="view-head"><h2>北京时间</h2><p>中国标准时间 CST · UTC+8 · 实时更新</p></div>
+      <div class="card clock-card">
+        <div class="clock-top">
+          <span class="pill"><span class="dot"></span>实时同步中</span>
+          <button class="ghost-btn" id="copyTime">复制时间</button>
+        </div>
+        <div class="clock">
+          <span class="num" id="tH">00</span><span class="sep">:</span>
+          <span class="num" id="tM">00</span><span class="sep">:</span>
+          <span class="num" id="tS">00</span>
+          <span class="ms" id="tMs">.000</span>
+        </div>
+        <div class="clock-date" id="tDate">—</div>
+        <div class="clock-lunar" id="tLunar">—</div>
+      </div>
+      <div class="grid grid-4">
+        <div class="card stat"><div class="stat-k">今年第</div><div class="stat-v"><span id="sDayOfYear">—</span><small>天</small></div></div>
+        <div class="card stat"><div class="stat-k">本周是第</div><div class="stat-v"><span id="sWeek">—</span><small>周</small></div></div>
+        <div class="card stat"><div class="stat-k">今年剩余</div><div class="stat-v"><span id="sLeft">—</span><small>天</small></div></div>
+        <div class="card stat"><div class="stat-k">Unix 时间戳</div><div class="stat-v" style="font-size:19px"><span id="sUnix">—</span></div></div>
+      </div>
+    </section>
+    <section class="view" id="view-cal">
+      <div class="view-head"><h2>万年历</h2><p>公历 · 农历 · 节气 · 已订阅节日</p></div>
+      <div class="card">
+        <div class="cal-bar">
+          <button class="icon-btn" id="calPrev" aria-label="上个月">‹</button>
+          <div class="cal-title" id="calTitle">—</div>
+          <button class="icon-btn" id="calNext" aria-label="下个月">›</button>
+          <button class="ghost-btn" id="calToday">回到今天</button>
+        </div>
+        <div class="cal-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+      <div class="card day-detail" id="dayDetail"><div class="dd-empty">点击日期查看详情</div></div>
+    </section>
+    <section class="view" id="view-timer">
+      <div class="view-head"><h2>倒计时</h2><p>选择事件 · 自定义时长 · 仅倒计时</p></div>
+      <div class="card">
+        <div class="card-title">选择事件</div>
+        <div class="preset-scroll" id="presetBar"></div>
+        <div class="time-input-row">
+          <div class="time-field"><input type="number" id="inMin" min="0" max="999" value="3" inputmode="numeric"><span>分</span></div>
+          <div class="time-field"><input type="number" id="inSec" min="0" max="59" value="0" inputmode="numeric"><span>秒</span></div>
+        </div>
+        <div class="preview-line" id="timerPreview">—</div>
+      </div>
+      <div class="card timer-display-card">
+        <div class="timer-big" id="timerBig">03:00</div>
+        <div class="timer-progress"><div id="timerProgressFill"></div></div>
+        <div class="timer-btns">
+          <button class="btn-primary" id="btnStart">开始</button>
+          <button class="btn-ghost" id="btnReset">重置</button>
+        </div>
+      </div>
+    </section>
+    <section class="view" id="view-festival">
+      <div class="view-head"><h2>节日倒计时</h2><p>已订阅节日实时倒数，点击查看介绍</p></div>
+      <div class="card fest-hero" id="festHero">
+        <div class="fest-emoji"></div>
+        <div class="fest-label">加载中…</div>
+      </div>
+      <div class="card">
+        <div class="card-title">即将到来</div>
+        <div class="fest-list" id="festList"></div>
+      </div>
+    </section>
+    <section class="view" id="view-subscribe">
+      <div class="view-head"><h2>订阅日历</h2><p>点击右侧订阅按钮查看详情，订阅后自动同步到万年历与节日倒计时</p></div>
+      <div class="sub-summary" id="subSummary"></div>
+      <div class="pack-list" id="packList"></div>
+      <div class="sub-actions">
+        <button class="btn-primary" id="subAll">全部订阅</button>
+        <button class="btn-ghost" id="subReset">恢复默认</button>
+      </div>
+    </section>
+    <section class="view" id="view-fortune">
+      <div class="view-head"><h2>今日运势</h2><p id="fortuneDate">—</p></div>
+      <div class="sign-scroll" id="signBar"></div>
+      <div class="card fortune-hero">
+        <div class="score-ring" id="scoreRing">
+          <div class="ring-inner"><span id="scoreNum">—</span><small>综合运势</small></div>
+        </div>
+        <div class="hero-text">
+          <div class="stars" id="stars"></div>
+          <h3 id="fortuneTitle">—</h3>
+          <p id="fortuneDesc">—</p>
+        </div>
+      </div>
+      <div class="grid grid-2" style="margin-bottom:14px">
+        <div class="card"><div class="card-title">分项运势</div><div class="bars" id="bars"></div></div>
+        <div class="card"><div class="card-title">幸运指南</div><div class="lucky-grid" id="lucky"></div></div>
+      </div>
+      <div class="grid grid-2">
+        <div class="card"><div class="card-title">宜</div><div class="tags tags-ok" id="goodList"></div></div>
+        <div class="card"><div class="card-title">忌</div><div class="tags tags-bad" id="badList"></div></div>
+      </div>
+    </section>
+    <section class="view" id="view-author">
+      <div class="view-head"><h2>网站作者</h2><p>关于小七工具箱与作者 Seven戚</p></div>
+      <div class="author-profile">
+        <div class="author-avatar">戚</div>
+        <div class="author-name">Seven戚</div>
+        <div class="author-tag">
+          小七工具箱开发者 · 独立开发者 · 喜欢做点有用的小工具<br>
+          感谢你的使用，欢迎来逛逛我的其他作品
+        </div>
+      </div>
+      <div class="author-links">
+        <a class="author-link" href="https://sevenseven712.github.io/shangcheng/" target="_blank" rel="noopener">
+          <span class="author-link-icon bg-shop">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9h18v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 13a3 3 0 0 0 6 0"/></svg>
+          </span>
+          <div class="author-link-body">
+            <b>我的软件商场</b>
+            <span>sevenseven712.github.io/shangcheng</span>
+          </div>
+          <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+        </a>
+        <a class="author-link" href="https://sevenseven712.github.io/Seven712/" target="_blank" rel="noopener">
+          <span class="author-link-icon bg-blog">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H19"/></svg>
+          </span>
+          <div class="author-link-body">
+            <b>我的个人博客</b>
+            <span>sevenseven712.github.io/Seven712</span>
+          </div>
+          <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+        </a>
+        <a class="author-link" href="https://qun.qq.com/universal-share/share?ac=1&authKey=zh%2BYgTKBGC6XDAKrjm%2BHLZHe39m04LkU9dRMFipJvoO6DATjlB0xeuTgvVQA3wB3&busi_data=eyJncm91cENvZGUiOiIxMDE5NTk3MjUxIiwidG9rZW4iOiJDMXNZMldCcVB4em9RN0oyeFgrdFY1SFRRWVp4dldRS1k1OHVjcTBsLzJHdlFZUk5Va1g3K2JoU2R0YmpQOXo1IiwidWluIjoiMjEwMzY4NjU4OCJ9&data=cUgDhWC4XiXYa11W-oFP9395ctnrIyMZ0K7ypRTURhVDQC6hAprzoE0Uv-TEz0fxc_eX4N6qWTU47SOW2HAeAxpQFCfCbrALiZU0XADmQx0&svctype=5&tempid=h5_group_info" target="_blank" rel="noopener">
+          <span class="author-link-icon bg-qq">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-3 0-5 2-5 4.5 0 1.5.5 2.5 1 3.2-.8.6-2 1.8-2 3.8 0 .5.5 1 1 1 .3 0 .6-.2.8-.5.3.8.8 1.5 1.4 1.8-.5.3-1 .8-1 1.7h9.6c0-.9-.5-1.4-1-1.7.6-.3 1.1-1 1.4-1.8.2.3.5.5.8.5.5 0 1-.5 1-1 0-2-1.2-3.2-2-3.8.5-.7 1-1.7 1-3.2 0-2.5-2-4.5-5-4.5z"/></svg>
+          </span>
+          <div class="author-link-body">
+            <b>我的 QQ 群</b>
+            <span>点击加入交流群</span>
+          </div>
+          <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+        </a>
+        <a class="author-link" href="https://sevenseven712.github.io/liuyanban/posts.html" target="_blank" rel="noopener">
+          <span class="author-link-icon bg-bug">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+          </span>
+          <div class="author-link-body">
+            <b>反馈 Bug</b>
+            <span>留言板 · 欢迎提建议</span>
+          </div>
+          <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+        </a>
+      </div>
+      <div class="author-note">
+        <b>关于小七工具箱</b><br>
+        所有计算均在本地完成，不上传任何数据。农历数据支持 1900–2100 年。<br>
+        如果这个工具帮到了你，欢迎分享给朋友，或者去商场逛逛我的其他作品 ✨
+      </div>
+    </section>
+  </main>
+</div>
+<!-- 套餐详情弹窗 -->
+<div class="modal" id="packModal">
+  <div class="modal-panel">
+    <div class="modal-head">
+      <div class="modal-head-icon" id="packMIcon"></div>
+      <div class="modal-head-info">
+        <h3 id="packMName"></h3>
+        <p id="packMDesc"></p>
+      </div>
+      <button class="modal-close" data-close="packModal">✕</button>
+    </div>
+    <div class="pack-modal-count" id="packMCount"></div>
+    <div class="modal-body" style="padding:0 6px 0 0">
+      <div class="pack-modal-list" id="packMList"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" data-close="packModal">关闭</button>
+      <button class="btn-primary" id="packMConfirm">订阅</button>
+    </div>
+  </div>
+</div>
+<!-- 日期选择弹窗 -->
+<div class="modal" id="datePickerModal">
+  <div class="modal-panel compact">
+    <div class="modal-head">
+      <div class="modal-head-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+      </div>
+      <div class="modal-head-info">
+        <h3>选择日期</h3>
+        <p>查看这一天是什么节日</p>
+      </div>
+      <button class="modal-close" data-close="datePickerModal">✕</button>
+    </div>
+    <div class="date-picker-wrap">
+      <input type="date" id="datePickerInput" class="date-input-styled" min="1900-01-01" max="2100-12-31">
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" data-close="datePickerModal">取消</button>
+      <button class="btn-primary" id="datePickerConfirm">查询</button>
+    </div>
+  </div>
+</div>
+<!-- 节日选择弹窗 -->
+<div class="modal" id="festPickerModal">
+  <div class="modal-panel">
+    <div class="modal-head">
+      <div class="modal-head-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4 4.4.6-3.2 3.1.8 4.4L12 13l-3.9 2.1.8-4.4L5.7 7.6l4.4-.6z"/><path d="M12 17.5V21M9 21h6"/></svg>
+      </div>
+      <div class="modal-head-info">
+        <h3>选择节日</h3>
+        <p>选一个节日，查看还有多少天到来</p>
+      </div>
+      <button class="modal-close" data-close="festPickerModal">✕</button>
+    </div>
+    <div class="picker-tabs" id="pickerTabs"></div>
+    <div class="picker-search"><input type="text" id="festSearchInput" placeholder="搜索节日名称…" autocomplete="off"></div>
+    <div class="modal-body" style="padding:0 6px 0 0">
+      <div class="picker-list" id="festPickerList"></div>
+    </div>
+  </div>
+</div>
+<!-- AI 悬浮球 -->
+<button class="ai-fab" id="aiFab" aria-label="AI 助手">
+  <span class="ai-fab-text">AI</span>
+</button>
+<!-- AI 对话弹窗 -->
+<div class="ai-modal" id="aiModal">
+  <div class="ai-chat">
+    <div class="ai-header">
+      <div class="ai-avatar">AI</div>
+      <div class="ai-header-info">
+        <h3>小七 AI 助手 <span class="ai-quota" id="aiQuota">100 额度</span></h3>
+        <p>查节日 · 查农历 · 查年份</p>
+      </div>
+      <button class="ai-close-btn" id="aiClose">✕</button>
+    </div>
+    <div class="ai-messages" id="aiMessages"></div>
+    <div class="ai-quick-row" id="aiQuickRow">
+      <button class="ai-chip" data-quick="today">今天是什么节日</button>
+      <button class="ai-chip" data-quick="pick-date">📅 选日期查节日</button>
+      <button class="ai-chip" data-quick="pick-fest">🎯 选节日查倒计时</button>
+      <button class="ai-chip" data-quick="this-year">今年是什么年</button>
+    </div>
+    <div class="ai-input-row">
+      <input type="text" id="aiInput" placeholder="如「2025年是什么年」「2026年春节」" autocomplete="off">
+      <button class="ai-send-btn" id="aiSend" aria-label="发送">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+/* ==================================================
+   SVG 图标库
+================================================== */
+const ICONS = {
+  tooth:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-1.4-1.6-3-2.4-4.6-2.4C4.8 3.6 3.2 5.6 3.2 8.2c0 2.4.7 3.8 1.3 5.8.5 1.6.7 3.4 1.2 4.4.3.7.9 1 1.5 1 .8 0 1.1-.5 1.3-1.4.3-1.2.5-2.6.9-3.7.3-.9.9-1.4 1.6-1.4s1.3.5 1.6 1.4c.4 1.1.6 2.5.9 3.7.2.9.5 1.4 1.3 1.4.6 0 1.2-.3 1.5-1 .5-1 .7-2.8 1.2-4.4.6-2 1.3-3.4 1.3-5.8 0-2.6-1.6-4.6-4.2-4.6C15 3.6 13.4 4.4 12 6z"/></svg>',
+  noodle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11h17c0 4.5-3.8 8-8.5 8s-8.5-3.5-8.5-8z"/><path d="M2 20h20"/><path d="M8 8c0-1.5.8-2.5 2-3M12 7c0-1.5.8-2.5 2-3"/></svg>',
+  tea:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h11v5.5c0 3-2.2 5-5.5 5S5 16.5 5 13.5z"/><path d="M16 9.5h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 21h13"/><path d="M9 4.5c0-1 .5-1.5 1-2M12.5 4.5c0-1 .5-1.5 1-2"/></svg>',
+  egg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-3.5 0-6.5 5-6.5 9.5S8.5 21 12 21s6.5-4 6.5-8.5S15.5 3 12 3z"/></svg>',
+  meditate:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.5"/><path d="M12 8v6M6 12c0 2.5 2.5 4 6 4s6-1.5 6-4"/><path d="M5 20h14M8 17l-3 3M16 17l3 3"/></svg>',
+  mask:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6c2-1.5 5-2 8-2s6 .5 8 2v6c0 4-3.5 7-8 7s-8-3-8-7z"/><path d="M8.5 10.5c0 .6.5 1 1 1s1-.4 1-1M13.5 10.5c0 .6.5 1 1 1s1-.4 1-1"/><path d="M9.5 15c.8.7 1.6 1 2.5 1s1.7-.3 2.5-1"/></svg>',
+  sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13.5A8 8 0 0 1 10.5 4a8 8 0 1 0 9.5 9.5z"/><path d="M15 3h4l-4 4h4"/></svg>',
+  tomato:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8c4 0 7 2.5 7 6s-3 6-7 6-7-2.5-7-6 3-6 7-6z"/><path d="M12 8V5M9 6l1.5 2M15 6l-1.5 2M12 5l-1-2M12 5l1-2"/></svg>',
+  party:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l6-16 10 10z"/><path d="M14 3v3M19 6l-2 2M20 12h3M6 4l1 2"/></svg>',
+  heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg>',
+  flower:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="2"/><path d="M12 6c0-2 1-3.5 2.5-3.5S17 4 17 6s-1.5 2.5-3 2.5M12 6c0-2-1-3.5-2.5-3.5S7 4 7 6s1.5 2.5 3 2.5"/><path d="M12 10V21M12 15l-3 3M12 17l3 3"/></svg>',
+  tree:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l4 6h-3l3 5h-3l3 5H8l3-5H8l3-5H8z"/><path d="M12 19v3"/></svg>',
+  smile:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14c.8 1.2 2 2 3.5 2s2.7-.8 3.5-2"/><circle cx="9" cy="9.5" r=".7" fill="currentColor"/><circle cx="15" cy="9.5" r=".7" fill="currentColor"/></svg>',
+  fist:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10c0-2 1.5-3.5 3.5-3.5h7C17.5 6.5 19 8 19 10v5c0 3-2 5-5 5h-4c-3 0-5-2-5-5z"/><path d="M8.5 7V5M12 7V4.5M15.5 7V5"/></svg>',
+  fire:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s4 4 4 8-2 5-2 5 1-3-1-5c0 0-1 3-3 3s-2-2-2-2-2 2-2 5 2 5 6 5 7-3 7-7c0-6-7-12-7-12z"/></svg>',
+  balloon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-3 0-5.5 2.5-5.5 5.5S8.5 15 12 15s5.5-3.5 5.5-6.5S15 3 12 3z"/><path d="M12 15v2"/><path d="M12 17c-1 1.5-1 3 0 4s1 2.5 0 3"/></svg>',
+  flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18"/><path d="M5 4h12l-2 4 2 4H5"/></svg>',
+  book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H19"/></svg>',
+  chinaFlag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7.5 9l.8 1.6 1.7.2-1.2 1.2.3 1.7-1.6-.9-1.6.9.3-1.7-1.2-1.2 1.7-.2z"/><circle cx="16" cy="10" r=".7" fill="currentColor"/><circle cx="18" cy="12.5" r=".7" fill="currentColor"/><circle cx="16.5" cy="15.5" r=".7" fill="currentColor"/><circle cx="13.5" cy="14" r=".7" fill="currentColor"/></svg>',
+  apple:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8c-3 0-5 2-5 5s2 7 5 7 5-4 5-7-2-5-5-5z"/><path d="M12 8c0-2 1-4 3-4M12 6c-1-.5-2 0-2.5.5"/></svg>',
+  treeXmas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l3.5 5h-2l3 5h-2.5l3 5H7l3-5H7.5l3-5h-2z"/><path d="M12 18v3M12 13l1.5-1.5M12 16l-1.5 1.5"/></svg>',
+  redPacket:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M5 5c3.5 2.5 10.5 2.5 14 0"/><circle cx="12" cy="13" r="2.2"/></svg>',
+  lantern:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M12 3v2"/><ellipse cx="12" cy="12" rx="6" ry="7"/><path d="M6 12h12M6 9.5h12M6 14.5h12"/><path d="M10 19l-1 2M14 19l1 2"/></svg>',
+  zongzi:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L4 10l3 9h10l3-9z"/><path d="M7 10h10M8 14h8"/></svg>',
+  sparkle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.5 5 5 1.5-5 1.5L12 16l-1.5-5-5-1.5 5-1.5z"/><path d="M18 16l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>',
+  candle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="6" height="12" rx="1.5"/><path d="M12 9V7"/><path d="M12 7c-1.5-1-1.5-3 0-4 1.5 1 1.5 3 0 4z"/></svg>',
+  moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13.5A8 8 0 0 1 10.5 4a8 8 0 1 0 9.5 9.5z"/></svg>',
+  leaf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4C10 4 4 8 4 15c0 2 1 4 3 5 0-8 6-12 13-13-6 2-10 5-11 11 6 0 11-5 11-14z"/></svg>',
+  bowl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11h17c0 4.5-3.8 8-8.5 8s-8.5-3.5-8.5-8z"/><path d="M12 8c0-2 1-3 2.5-3"/></svg>',
+  candy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M7.5 12L3 9.5v5zM16.5 12L21 9.5v5z"/></svg>',
+  firecracker:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="6" height="12" rx="1.5"/><path d="M12 9V7"/><path d="M9 5l1-1.5M15 5l-1-1.5M12 4V2"/></svg>',
+  pumpkin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="13" rx="8" ry="7"/><path d="M12 6V3M9 6c1 1 5 1 6 0"/><path d="M12 6c-1 2-1 12 0 14M12 6c1 2 1 12 0 14"/><circle cx="9" cy="12" r=".7" fill="currentColor"/><circle cx="15" cy="12" r=".7" fill="currentColor"/><path d="M10 16l2-1 2 1"/></svg>',
+  turkey:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13c0-3 2-5 4-6l1-3 2 2 2-2 1 3c2 1 4 3 4 6v4H5z"/><path d="M9 17c0 1.5 1.3 3 3 3s3-1.5 3-3"/><circle cx="10.5" cy="12" r=".7" fill="currentColor"/><circle cx="13.5" cy="12" r=".7" fill="currentColor"/></svg>',
+  tie:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3l3 2 3-2v3l-3 2-3-2z"/><path d="M12 8l-2.5 4 2.5 9 2.5-9z"/></svg>',
+  carnation:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="2"/><path d="M9.5 9.5C8 10 7 11.5 7 13c0 2.5 2 4.5 5 4.5s5-2 5-4.5c0-1.5-1-3-2.5-3.5"/><path d="M12 17.5V21M12 19.5l-2.5 1.5M12 19.5l2.5 1.5"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+  cross:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg>',
+  pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1 11-11a2.5 2.5 0 0 0-3.5-3.5L4.5 15.5z"/><path d="M14 6.5l3.5 3.5"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.5 5.9.7-4.3 4 1.1 5.8L12 16.3 6.7 19l1.1-5.8-4.3-4 5.9-.7z"/></svg>'
+};
+function svgIcon(key){ return ICONS[key] || ICONS.party; }
+const $ = s => document.querySelector(s);
+const pad = (n, len = 2) => String(n).padStart(len, '0');
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function seedFrom(str){ let h = 2166136261 >>> 0; for (let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h >>> 0; }
+function rng(seed){ let a = seed >>> 0; return function(){ a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), 1 | t); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+/* 横向可滚动区：溢出时添加 .edge 提示 */
+function updateScrollEdges(){
+  document.querySelectorAll('.nav,.sign-scroll,.preset-scroll,.picker-tabs,.ai-quick-row,.sub-bar').forEach(el => {
+    el.classList.toggle('edge', el.scrollWidth > el.clientWidth + 2);
+  });
+}
+const weekCN = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+const ganzhiGan = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const ganzhiZhi = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const animals = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
+const lunarInfo = [
+0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,
+0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,
+0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,
+0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,
+0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,
+0x06ca0,0x0b550,0x15355,0x04da0,0x0a5b0,0x14573,0x052b0,0x0a9a8,0x0e950,0x06aa0,
+0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,
+0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b6a0,0x195a6,
+0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,
+0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x055c0,0x0ab60,0x096d5,0x092e0,
+0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,
+0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,
+0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,
+0x05aa0,0x076a3,0x096d0,0x04afb,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,
+0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0,
+0x14b63,0x09370,0x049f8,0x04970,0x064b0,0x168a6,0x0ea50,0x06b20,0x1a6c4,0x0aae0,
+0x0a2e0,0x0d2e3,0x0c960,0x0d557,0x0d4a0,0x0da50,0x05d55,0x056a0,0x0a6d0,0x055d4,
+0x052d0,0x0a9b8,0x0a950,0x0b4a0,0x0b6a6,0x0ad50,0x055a0,0x0aba4,0x0a5b0,0x052b0,
+0x0b273,0x06930,0x07337,0x06aa0,0x0ad50,0x14b55,0x04b60,0x0a570,0x054e4,0x0d160,
+0x0e968,0x0d520,0x0daa0,0x16aa6,0x056d0,0x04ae0,0x0a9d4,0x0a2d0,0x0d150,0x0f252,
+0x0d520];
+const cnDays = ['初一','初二','初三','初四','初五','初六','初七','初八','初九','初十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+const cnMonths = ['正','二','三','四','五','六','七','八','九','十','冬','腊'];
+function leapMonth(y){ return lunarInfo[y-1900] & 0xf; }
+function leapDays(y){ if(!leapMonth(y)) return 0; return (lunarInfo[y-1900] & 0x10000) ? 30 : 29; }
+function monthDays(y,m){ return (lunarInfo[y-1900] & (0x10000 >> m)) ? 30 : 29; }
+function lYearDays(y){ let sum = 348; for (let i = 0x8000; i > 0x8; i >>= 1) sum += (lunarInfo[y-1900] & i) ? 1 : 0; return sum + leapDays(y); }
+function solar2lunar(date){
+  const base = Date.UTC(1900,0,31);
+  const cur = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  let offset = Math.floor((cur - base) / 86400000);
+  let i, temp = 0;
+  for (i = 1900; i < 2101 && offset > 0; i++){ temp = lYearDays(i); offset -= temp; }
+  if (offset < 0){ offset += temp; i--; }
+  const lunarYear = i;
+  const leap = leapMonth(lunarYear);
+  let isLeap = false;
+  for (i = 1; i < 13 && offset > 0; i++){
+    if (leap > 0 && i === leap + 1 && !isLeap){ --i; isLeap = true; temp = leapDays(lunarYear); }
+    else temp = monthDays(lunarYear, i);
+    if (isLeap && i === leap + 1) isLeap = false;
+    offset -= temp;
+  }
+  if (offset === 0 && leap > 0 && i === leap + 1){ if (isLeap) isLeap = false; else { isLeap = true; --i; } }
+  if (offset < 0){ offset += temp; --i; }
+  return { year: lunarYear, month: i, day: offset + 1, isLeap };
+}
+function lunar2solar(ly, lm, ld, isLeapMonth=false){
+  if (ly < 1900 || ly > 2100) return null;
+  let offset = 0;
+  for (let y = 1900; y < ly; y++) offset += lYearDays(y);
+  const leap = leapMonth(ly);
+  for (let m = 1; m < lm; m++){ offset += monthDays(ly, m); if (m === leap) offset += leapDays(ly); }
+  if (isLeapMonth && lm === leap) offset += monthDays(ly, lm);
+  offset += ld - 1;
+  const base = Date.UTC(1900,0,31);
+  const d = new Date(base + offset * 86400000);
+  return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+}
+const termNames = ['小寒','大寒','立春','雨水','惊蛰','春分','清明','谷雨','立夏','小满','芒种','夏至','小暑','大暑','立秋','处暑','白露','秋分','寒露','霜降','立冬','小雪','大雪','冬至'];
+const sTermInfo = [0,21208,42467,63836,85337,107014,128867,150921,173149,195551,218072,240693,263343,285989,308563,331033,353350,375494,397447,419210,440795,462224,483532,504758];
+function getTerm(y,n){ const d = new Date(31556925974.7 * (y - 1900) + sTermInfo[n] * 60000 + Date.UTC(1900,0,6,2,5)); return d.getUTCDate(); }
+function getTermName(date){ const y = date.getFullYear(), m = date.getMonth(), d = date.getDate(); const n1 = m*2, n2 = m*2+1; if (getTerm(y,n1) === d) return termNames[n1]; if (getTerm(y,n2) === d) return termNames[n2]; return ''; }
+function getGanzhiYear(y){ const g = ((y - 4) % 10 + 10) % 10; const z = ((y - 4) % 12 + 12) % 12; return ganzhiGan[g] + ganzhiZhi[z]; }
+function getAnimalYear(y){ return animals[((y - 4) % 12 + 12) % 12]; }
+function getLunarYearInfo(gy){
+  let cny = lunar2solar(gy, 1, 1, false);
+  if (!cny) return { ganzhi: getGanzhiYear(gy), animal: getAnimalYear(gy), lunarYear: gy };
+  return { ganzhi: getGanzhiYear(gy), animal: getAnimalYear(gy), lunarYear: gy, cnyDate: cny };
+}
+/* ==================================================
+   节日包数据
+================================================== */
+const FEST_PACKS = [
+  { id:'cn_base', name:'中国基础节日包', icon:'chinaFlag', desc:'中国传统节日与法定节假日，默认开启', default:true, festivals:[
+    { name:'元旦', icon:'party', type:'solar', month:1, day:1, desc:'公历新年的第一天，世界多数国家通称的“新年”。中国法定节假日，放假1天。' },
+    { name:'春节', icon:'redPacket', type:'lunar', month:1, day:1, desc:'农历正月初一，中国最重要的传统节日。贴春联、放鞭炮、吃年夜饭、拜年、发红包，阖家团圆。法定假期通常为7天。' },
+    { name:'元宵节', icon:'lantern', type:'lunar', month:1, day:15, desc:'农历正月十五，又称上元节、灯节。赏花灯、猜灯谜、吃元宵或汤圆，是春节庆祝活动的最后一天。' },
+    { name:'清明节', icon:'leaf', type:'term', termName:'清明', desc:'二十四节气之一，也是中国传统祭祀节日。扫墓祭祖、缅怀先人，同时也有踏青、插柳等习俗。中国法定节假日。' },
+    { name:'劳动节', icon:'fist', type:'solar', month:5, day:1, desc:'国际劳动节，纪念全世界劳动人民的节日。中国法定节假日，通常放假5天。' },
+    { name:'青年节', icon:'fire', type:'solar', month:5, day:4, desc:'纪念1919年五四运动，是中国青年的节日。14至28周岁的青年放假半天。' },
+    { name:'端午节', icon:'zongzi', type:'lunar', month:5, day:5, desc:'农历五月初五，纪念爱国诗人屈原。赛龙舟、吃粽子、挂艾草、佩香囊。中国法定节假日。' },
+    { name:'儿童节', icon:'balloon', type:'solar', month:6, day:1, desc:'国际儿童节，保障儿童权利、关爱儿童成长。不满14周岁的少年儿童放假1天。' },
+    { name:'建党节', icon:'flag', type:'solar', month:7, day:1, desc:'中国共产党成立纪念日。1921年7月23日中共一大召开，后确定7月1日为建党节。' },
+    { name:'七夕', icon:'sparkle', type:'lunar', month:7, day:7, desc:'农历七月初七，中国情人节。传说牛郎织女在这一天鹊桥相会，姑娘们有乞巧的习俗。' },
+    { name:'中秋节', icon:'moon', type:'lunar', month:8, day:15, desc:'农历八月十五，象征团圆的传统节日。赏月、吃月饼、家人团聚、饮桂花酒。中国法定节假日。' },
+    { name:'教师节', icon:'book', type:'solar', month:9, day:10, desc:'感谢教师教书育人的节日。1985年起设立，全国教师可享受半天假期。' },
+    { name:'国庆节', icon:'chinaFlag', type:'solar', month:10, day:1, desc:'中华人民共和国成立纪念日。1949年10月1日开国大典，中国法定节假日，通常放假7天。' },
+    { name:'重阳节', icon:'leaf', type:'lunar', month:9, day:9, desc:'农历九月初九，又称老人节、敬老节。登高远眺、赏菊、插茱萸、敬老爱老。' },
+    { name:'腊八节', icon:'bowl', type:'lunar', month:12, day:8, desc:'农历腊月初八，喝腊八粥、泡腊八蒜，拉开春节的序幕。也是佛教释迦牟尼成道日。' },
+    { name:'小年', icon:'candy', type:'lunar', month:12, day:23, desc:'农历腊月廿三（北方）或廿四（南方），祭灶王、扫尘土、吃灶糖，春节前的重要节日。' },
+    { name:'除夕', icon:'firecracker', type:'chuxi', desc:'农历年的最后一天。贴春联、吃年夜饭、守岁、放鞭炮、发压岁钱，辞旧迎新。' }
+  ]},
+  { id:'cn_career', name:'中国职业节日包', icon:'shield', desc:'护士节、警察节、记者节等职业相关节日', default:false, festivals:[
+    { name:'警察节', icon:'shield', type:'solar', month:1, day:10, desc:'中国人民警察节，2021年起设立。向维护社会安定、守护人民安宁的人民警察致敬。' },
+    { name:'护士节', icon:'cross', type:'solar', month:5, day:12, desc:'国际护士节，纪念现代护理学创始人南丁格尔的诞辰。向白衣天使致敬，感谢她们的付出。' },
+    { name:'医师节', icon:'cross', type:'solar', month:8, day:19, desc:'中国医师节，2018年起设立。弘扬“敬佑生命、救死扶伤、甘于奉献、大爱无疆”的崇高精神。' },
+    { name:'环卫工人节', icon:'leaf', type:'solar', month:10, day:26, desc:'致敬“城市美容师”。1987年由黑龙江省率先设立，感谢环卫工人为城市整洁做出的贡献。' },
+    { name:'记者节', icon:'pen', type:'solar', month:11, day:8, desc:'中国记者节，2000年正式确立。向铁肩担道义、妙手著文章的新闻工作者致敬。' },
+    { name:'消防日', icon:'fire', type:'solar', month:11, day:9, desc:'全国消防日，“119”与火警电话号码相同。致敬逆火而行的消防员，宣传消防安全知识。' },
+    { name:'宪法日', icon:'book', type:'solar', month:12, day:4, desc:'国家宪法日，2014年起设立。普及宪法知识、弘扬宪法精神、维护宪法权威。' },
+    { name:'航天日', icon:'star', type:'solar', month:4, day:24, desc:'中国航天日，纪念1970年4月24日“东方红一号”卫星成功发射。致敬航天工作者。' }
+  ]},
+  { id:'cn_folk', name:'中国民间节日包', icon:'lantern', desc:'龙抬头、中元节、寒衣节等民间传统节日', default:false, festivals:[
+    { name:'龙抬头', icon:'sparkle', type:'lunar', month:2, day:2, desc:'农历二月初二，又称春耕节、农事节。民间有“二月二，龙抬头”的说法，这天理发叫“剃龙头”，寓意辞旧迎新。' },
+    { name:'上巳节', icon:'flower', type:'lunar', month:3, day:3, desc:'农历三月初三，古时水边饮宴、郊外游春的节日。王羲之《兰亭集序》即写于此日。部分少数民族仍保留此节。' },
+    { name:'天贶节', icon:'candle', type:'lunar', month:6, day:6, desc:'农历六月初六，又称晒衣节、洗晒节。民间有晒衣、晒书、洗浴、给猫狗洗澡的习俗，寓意祛病消灾。' },
+    { name:'中元节', icon:'candle', type:'lunar', month:7, day:15, desc:'农历七月十五，又称鬼节、盂兰盆节。民间祭祀祖先、放河灯、焚纸锭，道教称中元节，佛教称盂兰盆节。' },
+    { name:'寒衣节', icon:'firecracker', type:'lunar', month:10, day:1, desc:'农历十月初一，又称十月朝、祭祖节。天气转凉，人们祭扫烧献，为逝去的亲人送去御寒衣物，谓之“送寒衣”。' },
+    { name:'下元节', icon:'candle', type:'lunar', month:10, day:15, desc:'农历十月十五，道教水官解厄之日。民间祭祀祖先、祈求丰收，与上元节、中元节合称“三元”。' },
+    { name:'尾牙', icon:'bowl', type:'lunar', month:12, day:16, desc:'农历腊月十六，商家一年活动的尾声。祭拜土地公，感谢其庇佑，老板宴请员工，现代企业年会的源头。' }
+  ]},
+  { id:'us', name:'美国节日包', icon:'star', desc:'独立日、感恩节、总统日等美国重要节日', default:false, festivals:[
+    { name:'新年', icon:'party', type:'solar', month:1, day:1, desc:'New Year\'s Day，美国联邦法定假日。跨年夜倒计时、烟花表演、写新年决心是主要庆祝方式。' },
+    { name:'马丁·路德·金日', icon:'heart', type:'nth', month:1, weekday:1, nth:3, desc:'Martin Luther King Jr. Day，1月第三个周一。纪念民权运动领袖马丁·路德·金，倡导服务他人。' },
+    { name:'总统日', icon:'flag', type:'nth', month:2, weekday:1, nth:3, desc:'Presidents\' Day，2月第三个周一。最初纪念华盛顿诞辰，后扩展为纪念所有美国总统。' },
+    { name:'阵亡将士纪念日', icon:'heart', type:'nth', month:5, weekday:1, nth:-1, desc:'Memorial Day，5月最后一个周一。纪念在服役中牺牲的美国军人，标志夏季正式开始。' },
+    { name:'独立日', icon:'firecracker', type:'solar', month:7, day:4, desc:'Independence Day，美国国庆日。1776年7月4日《独立宣言》通过。烟花、烧烤、游行、爱国庆祝。' },
+    { name:'劳动节', icon:'fist', type:'nth', month:9, weekday:1, nth:1, desc:'Labor Day，9月第一个周一。向美国劳动者致敬，标志夏季结束、学校开学。' },
+    { name:'哥伦布日', icon:'star', type:'nth', month:10, weekday:1, nth:2, desc:'Columbus Day，10月第二个周一。纪念1492年哥伦布到达美洲，意大利裔美国人的重要节日。' },
+    { name:'退伍军人节', icon:'flag', type:'solar', month:11, day:11, desc:'Veterans Day，11月11日。向所有在美国武装部队服役过的退伍军人致敬，源于一战停战日。' },
+    { name:'感恩节', icon:'turkey', type:'nth', month:11, weekday:4, nth:4, desc:'Thanksgiving，11月第四个周四。家人团聚、吃火鸡、南瓜派、表达感恩，是美国最重要的家庭节日。' },
+    { name:'圣诞节', icon:'treeXmas', type:'solar', month:12, day:25, desc:'Christmas，基督教传统节日，纪念耶稣诞生。装饰圣诞树、交换礼物、挂圣诞袜，美国最盛大的节日。' }
+  ]},
+  { id:'jp', name:'日本节日包', icon:'sparkle', desc:'成人日、儿童节、文化日等日本祝日', default:false, festivals:[
+    { name:'元旦', icon:'party', type:'solar', month:1, day:1, desc:'日本新年（お正月），一年中最重要的节日。初诣祈福、吃御节料理、喝屠苏酒、发压岁钱。' },
+    { name:'成人日', icon:'star', type:'nth', month:1, weekday:1, nth:2, desc:'成人の日，1月第二个周一。祝贺年满20岁的年轻人成为成年人，穿和服参加成人式。' },
+    { name:'建国纪念日', icon:'flag', type:'solar', month:2, day:11, desc:'建国記念の日，纪念日本建国，源于神武天皇即位传说。' },
+    { name:'天皇诞生日', icon:'carnation', type:'solar', month:2, day:23, desc:'天皇誕生日，庆祝现任天皇德仁的生日。皇宫会举行一般参贺。' },
+    { name:'昭和日', icon:'leaf', type:'solar', month:4, day:29, desc:'昭和の日，回顾昭和时代、思考国家未来的日子，也是日本黄金周的开始。' },
+    { name:'宪法纪念日', icon:'book', type:'solar', month:5, day:3, desc:'憲法記念日，纪念1947年日本国宪法实施，祈祷国家繁荣。' },
+    { name:'绿之日', icon:'tree', type:'solar', month:5, day:4, desc:'みどりの日，亲近自然、感谢自然恩惠、培养丰富心灵的日子。' },
+    { name:'儿童节', icon:'balloon', type:'solar', month:5, day:5, desc:'こどもの日，祝愿儿童健康成长、尊重儿童人格，家家户户悬挂鲤鱼旗。' },
+    { name:'海之日', icon:'moon', type:'nth', month:7, weekday:1, nth:3, desc:'海の日，7月第三个周一。感谢海洋恩惠、祈祷海洋国家日本繁荣。' },
+    { name:'山之日', icon:'tree', type:'solar', month:8, day:11, desc:'山の日，2016年起设立。亲近山岳、感谢山的恩惠，登山活动盛行。' },
+    { name:'敬老日', icon:'heart', type:'nth', month:9, weekday:1, nth:3, desc:'敬老の日，9月第三个周一。敬爱老人、祝愿老人长寿，向高龄者赠送礼物。' },
+    { name:'体育日', icon:'fire', type:'nth', month:10, weekday:1, nth:2, desc:'スポーツの日，10月第二个周一。享受运动、培养健康身心，源于1964年东京奥运会开幕日。' },
+    { name:'文化日', icon:'book', type:'solar', month:11, day:3, desc:'文化の日，爱好自由与和平、推进文化发展，源于明治天皇诞辰。' },
+    { name:'勤劳感谢日', icon:'fist', type:'solar', month:11, day:23, desc:'勤労感謝の日，尊重劳动、庆祝生产、感谢彼此，源于新尝祭。' }
+  ]},
+  { id:'world', name:'国际节日包', icon:'heart', desc:'情人节、母亲节、父亲节等国际通用节日', default:true, festivals:[
+    { name:'情人节', icon:'heart', type:'solar', month:2, day:14, desc:'Valentine\'s Day，情侣互赠礼物、巧克力、鲜花表达爱意的节日，起源于西方。' },
+    { name:'妇女节', icon:'flower', type:'solar', month:3, day:8, desc:'国际妇女节，庆祝妇女在经济、政治和社会等领域做出的重要贡献和取得的巨大成就。' },
+    { name:'愚人节', icon:'smile', type:'solar', month:4, day:1, desc:'April Fools\' Day，互相开玩笑、捉弄人、发布假消息的节日，起源于法国。' },
+    { name:'母亲节', icon:'carnation', type:'nth', month:5, weekday:0, nth:2, desc:'Mother\'s Day，5月第二个周日。感谢母亲的节日，送康乃馨、贺卡、礼物表达爱意。' },
+    { name:'父亲节', icon:'tie', type:'nth', month:6, weekday:0, nth:3, desc:'Father\'s Day，6月第三个周日。感谢父亲的节日，送领带、皮带、贺卡表达敬意。' },
+    { name:'万圣节', icon:'pumpkin', type:'solar', month:10, day:31, desc:'Halloween，万圣节前夜。孩子们化装成各种角色，挨家挨户说“Trick or Treat”讨糖果，南瓜灯是标志。' },
+    { name:'平安夜', icon:'apple', type:'solar', month:12, day:24, desc:'Christmas Eve，圣诞前夜。装饰圣诞树、唱圣诞颂歌、交换礼物、共享圣诞大餐。' },
+    { name:'圣诞节', icon:'treeXmas', type:'solar', month:12, day:25, desc:'Christmas，纪念耶稣诞生的基督教节日，现已成为全球广泛庆祝的世俗节日。' }
+  ]}
+];
+let subscriptions = {};
+FEST_PACKS.forEach(p => { subscriptions[p.id] = p.default; });
+try {
+  const stored = localStorage.getItem('xq_subscriptions_v1');
+  if (stored){ const parsed = JSON.parse(stored); FEST_PACKS.forEach(p => { if (typeof parsed[p.id] === 'boolean') subscriptions[p.id] = parsed[p.id]; }); }
+} catch(e){}
+function saveSubscriptions(){ try { localStorage.setItem('xq_subscriptions_v1', JSON.stringify(subscriptions)); } catch(e){} }
+let festDateCache = {};
+function getFestDateCached(f, y){ const key = f.name + '|' + f.type + '|' + y; if (key in festDateCache) return festDateCache[key]; const d = getFestDate(f, y); festDateCache[key] = d; return d; }
+let subscribedCache = null;
+let subscribedCacheKey = '';
+function getSubscribedFestivals(){
+  const key = JSON.stringify(subscriptions);
+  if (key === subscribedCacheKey && subscribedCache) return subscribedCache;
+  const seen = new Set(); const list = [];
+  for (const pack of FEST_PACKS){
+    if (!subscriptions[pack.id]) continue;
+    for (const f of pack.festivals){ if (seen.has(f.name)) continue; seen.add(f.name); list.push({ ...f, packId: pack.id, packName: pack.name }); }
+  }
+  subscribedCache = list; subscribedCacheKey = key; return list;
+}
+function getAllFestivalsWithPack(){
+  const seen = new Set(); const list = [];
+  for (const pack of FEST_PACKS){
+    for (const f of pack.festivals){ if (seen.has(f.name)) continue; seen.add(f.name); list.push({ ...f, packId: pack.id, packName: pack.name }); }
+  }
+  return list;
+}
+function clearFestCache(){ subscribedCache = null; subscribedCacheKey = ''; festDateCache = {}; }
+function nthWeekdayOfMonth(year, month, weekday, nth){
+  if (nth > 0){ const first = new Date(year, month - 1, 1); const offset = (weekday - first.getDay() + 7) % 7; return new Date(year, month - 1, 1 + offset + (nth - 1) * 7); }
+  else { const last = new Date(year, month, 0); const offset = (last.getDay() - weekday + 7) % 7; return new Date(year, month - 1, last.getDate() - offset); }
+}
+function getFestDate(f, y){
+  if (f.type === 'solar') return new Date(y, f.month - 1, f.day);
+  if (f.type === 'lunar'){ if (y < 1900 || y > 2100) return null; return lunar2solar(y, f.month, f.day, false); }
+  if (f.type === 'nth') return nthWeekdayOfMonth(y, f.month, f.weekday, f.nth);
+  if (f.type === 'term'){ for (let m = 0; m < 12; m++){ const n1 = m*2, n2 = m*2+1; if (termNames[n1] === f.termName) return new Date(y, m, getTerm(y, n1)); if (termNames[n2] === f.termName) return new Date(y, m, getTerm(y, n2)); } return null; }
+  if (f.type === 'chuxi'){ if (y + 1 < 1900 || y + 1 > 2100) return null; const cny = lunar2solar(y + 1, 1, 1, false); if (!cny) return null; return new Date(cny.getTime() - 86400000); }
+  return null;
+}
+function findSubscribedFestival(date){
+  const list = getSubscribedFestivals();
+  const y = date.getFullYear(), m = date.getMonth(), d = date.getDate();
+  for (const f of list){ for (const yr of [y, y-1, y+1]){ const fd = getFestDateCached(f, yr); if (fd && fd.getFullYear() === y && fd.getMonth() === m && fd.getDate() === d) return f; } }
+  return null;
+}
+function getFestivalsOnDate(y, m, d){
+  const results = [];
+  const date = new Date(y, m-1, d);
+  const l = solar2lunar(date);
+  const term = getTermName(date);
+  const tomorrow = new Date(date.getTime() + 86400000);
+  const tomorrowL = solar2lunar(tomorrow);
+  const isChuxi = (tomorrowL.month === 1 && tomorrowL.day === 1 && !tomorrowL.isLeap);
+  const all = getAllFestivalsWithPack();
+  for (const f of all){
+    if (f.type === 'solar' && f.month === m && f.day === d) results.push(f);
+    else if (f.type === 'lunar' && !l.isLeap && f.month === l.month && f.day === l.day) results.push(f);
+    else if (f.type === 'term' && term === f.termName) results.push(f);
+    else if (f.type === 'chuxi' && isChuxi) results.push(f);
+    else if (f.type === 'nth'){ const fd = getFestDate(f, y); if (fd && fd.getMonth() === m-1 && fd.getDate() === d) results.push(f); }
+  }
+  return results;
+}
+function dayLabel(date){
+  const fest = findSubscribedFestival(date);
+  if (fest) return { text: fest.name, type: 'fest', fest };
+  const term = getTermName(date);
+  if (term) return { text: term, type: 'term' };
+  const l = solar2lunar(date);
+  return { text: l.day === 1 ? cnMonths[l.month-1] + '月' : cnDays[l.day-1], type: 'lunar' };
+}
+function bjNow(){ const now = new Date(); return new Date(now.getTime() + (now.getTimezoneOffset() + 480) * 60000); }
+function getTodayKeyBJ(){ const bj = bjNow(); return `${bj.getFullYear()}-${bj.getMonth()+1}-${bj.getDate()}`; }
+let lastSec = -1;
+function updateClock(){
+  try {
+    const now = new Date(); const bj = bjNow();
+    const hEl = $('#tH'), mEl = $('#tM'), sEl = $('#tS'), msEl = $('#tMs');
+    if (hEl) hEl.textContent = pad(bj.getHours());
+    if (mEl) mEl.textContent = pad(bj.getMinutes());
+    if (sEl) sEl.textContent = pad(bj.getSeconds());
+    if (msEl) msEl.textContent = '.' + pad(now.getMilliseconds(), 3);
+    if (bj.getSeconds() !== lastSec){
+      lastSec = bj.getSeconds();
+      const y = bj.getFullYear(), mo = bj.getMonth(), d = bj.getDate();
+      const tDate = $('#tDate'); if (tDate) tDate.textContent = `${y}年${mo+1}月${d}日 ${weekCN[bj.getDay()]}`;
+      const l = solar2lunar(bj);
+      const gz = ganzhiGan[((l.year-4)%10+10)%10] + ganzhiZhi[((l.year-4)%12+12)%12];
+      const tLunar = $('#tLunar'); if (tLunar) tLunar.textContent = `农历${gz}年 ${l.isLeap?'闰':''}${cnMonths[l.month-1]}月${cnDays[l.day-1]} · 属${animals[((l.year-4)%12+12)%12]}`;
+      const dayOfYear = Math.floor((Date.UTC(y, mo, d) - Date.UTC(y, 0, 1)) / 86400000) + 1;
+      const yearDays = ((y%4===0 && y%100!==0) || y%400===0) ? 366 : 365;
+      const e1 = $('#sDayOfYear'); if (e1) e1.textContent = dayOfYear;
+      const e2 = $('#sLeft'); if (e2) e2.textContent = yearDays - dayOfYear;
+      const e3 = $('#sWeek'); if (e3) e3.textContent = isoWeek(bj);
+      const e4 = $('#sUnix'); if (e4) e4.textContent = Math.floor(now.getTime() / 1000);
+    }
+  } catch(e){}
+}
+function isoWeek(date){
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayNum = (d.getDay()+6)%7; d.setDate(d.getDate() - dayNum + 3);
+  const firstThursday = new Date(d.getFullYear(), 0, 4);
+  const fDayNum = (firstThursday.getDay()+6)%7; firstThursday.setDate(firstThursday.getDate() - fDayNum + 3);
+  return 1 + Math.round((d - firstThursday) / (7 * 86400000));
+}
+$('#copyTime').addEventListener('click', function(){
+  const bj = bjNow();
+  const txt = `${bj.getFullYear()}-${pad(bj.getMonth()+1)}-${pad(bj.getDate())} ${pad(bj.getHours())}:${pad(bj.getMinutes())}:${pad(bj.getSeconds())} (北京时间)`;
+  const done = () => { const old = this.textContent; this.textContent = '已复制 ✓'; setTimeout(()=>this.textContent=old, 1400); };
+  if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done).catch(()=>fallbackCopy(txt,done)); } else fallbackCopy(txt,done);
+});
+function fallbackCopy(text, cb){ const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); cb(); } catch(e){} document.body.removeChild(ta); }
+let calYear, calMonth, selectedKey = null;
+const todayObj = new Date(); const todayKey = `${todayObj.getFullYear()}-${todayObj.getMonth()}-${todayObj.getDate()}`;
+function initCalendar(){
+  const n = bjNow(); calYear = n.getFullYear(); calMonth = n.getMonth(); renderCalendar();
+  $('#calPrev').onclick = () => { calMonth--; if (calMonth < 0){ calMonth = 11; calYear--; } renderCalendar(); };
+  $('#calNext').onclick = () => { calMonth++; if (calMonth > 11){ calMonth = 0; calYear++; } renderCalendar(); };
+  $('#calToday').onclick = () => { const t = bjNow(); calYear = t.getFullYear(); calMonth = t.getMonth(); selectedKey = null; renderCalendar(); showDetail(new Date(t.getFullYear(), t.getMonth(), t.getDate())); };
+}
+function renderCalendar(){
+  try {
+    $('#calTitle').textContent = `${calYear}年${calMonth+1}月`;
+    const first = new Date(calYear, calMonth, 1); const startDay = first.getDay(); const start = new Date(calYear, calMonth, 1 - startDay);
+    const grid = $('#calGrid'); const frag = document.createDocumentFragment();
+    for (let i = 0; i < 42; i++){
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      const isOther = d.getMonth() !== calMonth; const isToday = key === todayKey; const isWk = d.getDay() === 0 || d.getDay() === 6;
+      const label = dayLabel(d);
+      const cell = document.createElement('div');
+      cell.className = 'cal-cell' + (isOther?' other':'') + (isToday?' today':'') + (isWk?' wk':'') + (label.type==='fest'?' fest':'') + (label.type==='term'?' term':'') + (selectedKey===key?' sel':'');
+      cell.innerHTML = `<span class="cd">${d.getDate()}</span><span class="cl" title="${label.text}">${label.text}</span>`;
+      cell.dataset.key = key;
+      cell.addEventListener('click', () => { selectedKey = key; renderCalendar(); showDetail(d); });
+      frag.appendChild(cell);
+    }
+    grid.innerHTML = ''; grid.appendChild(frag);
+  } catch(e){}
+}
+function showDetail(date){
+  const y = date.getFullYear(), m = date.getMonth()+1, d = date.getDate();
+  const w = weekCN[date.getDay()];
+  const l = solar2lunar(date);
+  const gz = ganzhiGan[((l.year-4)%10+10)%10] + ganzhiZhi[((l.year-4)%12+12)%12];
+  const animal = animals[((l.year-4)%12+12)%12];
+  const sign = getSign(m, d); const term = getTermName(date);
+  const subFest = findSubscribedFestival(date); const festTxt = subFest ? subFest.name : '—';
+  const weekNo = isoWeek(date);
+  let festBlock = '';
+  if (subFest){ festBlock = `<div class="dd-fest"><div class="dd-fest-head"><span class="di">${svgIcon(subFest.icon)}</span><b>${subFest.name}</b></div><p>${subFest.desc || '暂无介绍'}</p></div>`; }
+  $('#dayDetail').innerHTML = `
+    <div class="dd-head"><div class="dd-day">${d}</div><div><div class="dd-solar">${y}年${m}月${d}日 ${w}</div><div class="dd-lunar">农历${gz}年 ${l.isLeap?'闰':''}${cnMonths[l.month-1]}月${cnDays[l.day-1]}${term?' · '+term:''}</div></div></div>
+    <div class="dd-grid"><div><span>生肖</span><b>${animal}</b></div><div><span>星座</span><b>${sign}</b></div><div><span>节日</span><b>${festTxt}</b></div><div><span>年内周次</span><b>第 ${weekNo} 周</b></div></div>${festBlock}`;
+}
+function enableDragScroll(el){
+  if (!el) return;
+  let mDown = false, mMoved = false, mStartX = 0, mStartLeft = 0;
+  el.addEventListener('mousedown', function(e){ if (e.button !== 0) return; mDown = true; mMoved = false; mStartX = e.clientX; mStartLeft = el.scrollLeft; });
+  window.addEventListener('mousemove', function(e){ if (!mDown) return; const dx = e.clientX - mStartX; if (Math.abs(dx) > 5) mMoved = true; if (mMoved) el.scrollLeft = mStartLeft - dx; });
+  window.addEventListener('mouseup', function(){ if (mDown){ mDown = false; setTimeout(() => { mMoved = false; }, 0); } });
+  el.addEventListener('click', function(e){ if (mMoved){ e.stopPropagation(); e.preventDefault(); } }, true);
+  let tStartX = 0, tStartY = 0, tMoved = false;
+  el.addEventListener('touchstart', function(e){ if (e.touches.length !== 1) return; tStartX = e.touches[0].clientX; tStartY = e.touches[0].clientY; tMoved = false; }, { passive: true });
+  el.addEventListener('touchmove', function(e){ if (e.touches.length !== 1) return; const dx = e.touches[0].clientX - tStartX; const dy = e.touches[0].clientY - tStartY; if (Math.hypot(dx, dy) > 6) tMoved = true; }, { passive: true });
+  el.addEventListener('touchend', function(){ if (tMoved) setTimeout(() => { tMoved = false; }, 60); });
+  el.addEventListener('click', function(e){ if (tMoved){ e.stopPropagation(); e.preventDefault(); } }, true);
+}
+function scrollTabIntoView(container, target, padding){
+  if (!container || !target) return; if (padding === undefined) padding = 20;
+  const cLeft = container.scrollLeft; const cRight = cLeft + container.clientWidth;
+  const tLeft = target.offsetLeft; const tRight = tLeft + target.offsetWidth;
+  if (tLeft < cLeft + padding) container.scrollTo({ left: Math.max(0, tLeft - padding), behavior: 'smooth' });
+  else if (tRight > cRight - padding) container.scrollTo({ left: tRight - container.clientWidth + padding, behavior: 'smooth' });
+}
+const TIMER_PRESETS = [
+  { name:'刷牙', icon:'tooth', min:3, sec:0 },{ name:'泡面', icon:'noodle', min:3, sec:0 },
+  { name:'泡茶', icon:'tea', min:5, sec:0 },{ name:'煮蛋', icon:'egg', min:8, sec:0 },
+  { name:'冥想', icon:'meditate', min:10, sec:0 },{ name:'敷面膜', icon:'mask', min:15, sec:0 },
+  { name:'午休', icon:'sleep', min:20, sec:0 },{ name:'番茄钟', icon:'tomato', min:25, sec:0 }
+];
+const timer = { totalMs: 3*60*1000, remainMs: 3*60*1000, running:false, endAt:0, activePreset:0, done:false };
+function initTimer(){
+  const bar = $('#presetBar'); bar.innerHTML = '';
+  TIMER_PRESETS.forEach((p, i) => {
+    const b = document.createElement('button');
+    b.className = 'preset-chip' + (i === timer.activePreset ? ' on' : '');
+    b.innerHTML = `<span class="pi">${svgIcon(p.icon)}</span><span>${p.name}</span>`;
+    b.onclick = () => { selectPreset(i); scrollTabIntoView(bar, b, 20); };
+    bar.appendChild(b);
+  });
+  enableDragScroll(bar);
+  $('#inMin').addEventListener('input', onManualInput); $('#inSec').addEventListener('input', onManualInput);
+  $('#btnStart').onclick = toggleTimer; $('#btnReset').onclick = resetTimer;
+  applyPreset(0, true);
+  updateScrollEdges();
+}
+function selectPreset(i){ if (timer.running) return; timer.activePreset = i; applyPreset(i, false); updatePresetUI(); updateTimerPreview(); }
+function applyPreset(i, silent){ const p = TIMER_PRESETS[i]; if (silent) timer.activePreset = i; $('#inMin').value = p.min; $('#inSec').value = p.sec; updateDurationFromInputs(); if (!timer.running){ timer.remainMs = timer.totalMs; renderTimerBig(); updateProgress(); } }
+function updatePresetUI(){ [...$('#presetBar').children].forEach((c,i) => c.classList.toggle('on', i === timer.activePreset)); }
+function onManualInput(){ if (timer.running) return; timer.activePreset = -1; updatePresetUI(); updateDurationFromInputs(); if (!timer.running){ timer.remainMs = timer.totalMs; renderTimerBig(); updateProgress(); } updateTimerPreview(); }
+function updateDurationFromInputs(){ let m = parseInt($('#inMin').value, 10); let s = parseInt($('#inSec').value, 10); if (isNaN(m) || m < 0) m = 0; if (isNaN(s) || s < 0) s = 0; if (m > 999) m = 999; if (s > 59) s = 59; timer.totalMs = (m*60 + s) * 1000; }
+function updateTimerPreview(){ const totalSec = Math.round(timer.totalMs / 1000); const m = Math.floor(totalSec / 60); const s = totalSec % 60; if (timer.totalMs <= 0){ $('#timerPreview').innerHTML = '请设置大于 0 的时长'; return; } const end = new Date(Date.now() + timer.totalMs); const endStr = `${pad(end.getHours())}:${pad(end.getMinutes())}:${pad(end.getSeconds())}`; $('#timerPreview').innerHTML = `时长 <b>${m>0?m+' 分 ':''}${s} 秒</b><span class="sep-dot">·</span>预计 <b>${endStr}</b> 结束`; }
+function renderTimerBig(){ const totalSec = Math.max(0, Math.ceil(timer.remainMs / 1000)); const m = Math.floor(totalSec / 60); const s = totalSec % 60; const el = $('#timerBig'); el.textContent = `${pad(m)}:${pad(s)}`; el.classList.toggle('done', timer.done); }
+function updateProgress(){ const pct = timer.totalMs > 0 ? (timer.remainMs / timer.totalMs) * 100 : 0; $('#timerProgressFill').style.width = Math.max(0, Math.min(100, pct)) + '%'; }
+function toggleTimer(){ timer.running ? pauseTimer() : startTimer(); }
+function startTimer(){ if (timer.remainMs <= 0) timer.remainMs = timer.totalMs; if (timer.totalMs <= 0) return; timer.running = true; timer.done = false; timer.endAt = Date.now() + timer.remainMs; $('#btnStart').textContent = '暂停'; $('#inMin').disabled = true; $('#inSec').disabled = true; [...$('#presetBar').children].forEach(c => c.disabled = true); $('#timerBig').classList.remove('done'); }
+function pauseTimer(){ timer.running = false; timer.remainMs = Math.max(0, timer.endAt - Date.now()); $('#btnStart').textContent = '继续'; $('#inMin').disabled = false; $('#inSec').disabled = false; [...$('#presetBar').children].forEach(c => c.disabled = false); renderTimerBig(); updateProgress(); }
+function resetTimer(){ timer.running = false; timer.done = false; timer.remainMs = timer.totalMs; $('#btnStart').textContent = '开始'; $('#inMin').disabled = false; $('#inSec').disabled = false; [...$('#presetBar').children].forEach(c => c.disabled = false); $('#timerBig').classList.remove('done'); renderTimerBig(); updateProgress(); updateTimerPreview(); }
+function tickTimer(){ try { if (!timer.running) return; const left = timer.endAt - Date.now(); if (left <= 0){ timer.remainMs = 0; timer.running = false; timer.done = true; renderTimerBig(); updateProgress(); $('#btnStart').textContent = '开始'; $('#inMin').disabled = false; $('#inSec').disabled = false; [...$('#presetBar').children].forEach(c => c.disabled = false); playBeep(3); return; } timer.remainMs = left; renderTimerBig(); updateProgress(); } catch(e){} }
+function playBeep(times){ try { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; const ctx = new AC(); let t = ctx.currentTime; for (let i = 0; i < times; i++){ const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.connect(gain); gain.connect(ctx.destination); osc.type = 'sine'; osc.frequency.setValueAtTime(880, t); gain.gain.setValueAtTime(0.0001, t); gain.gain.exponentialRampToValueAtTime(0.25, t + 0.02); gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.2); osc.start(t); osc.stop(t + 0.22); t += 0.28; } setTimeout(() => { try { ctx.close(); } catch(e){} }, times * 280 + 600); } catch(e){} }
+let lastFestKey = '';
+function getUpcomingFestivals(limit){
+  const now = new Date(); const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); const baseYear = today.getFullYear();
+  const pool = getSubscribedFestivals(); const results = [];
+  for (let y = baseYear; y <= baseYear + 2; y++){ for (const f of pool){ const d = getFestDate(f, y); if (d && d.getTime() >= today.getTime()) results.push({ name:f.name, icon:f.icon, date:d, desc:f.desc }); } }
+  results.sort((a,b) => a.date - b.date);
+  const seen = new Set(); const out = [];
+  for (const r of results){ const k = r.name + r.date.getTime(); if (seen.has(k)) continue; seen.add(k); out.push(r); if (out.length >= limit) break; }
+  return out;
+}
+function fmtDate(d){ return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`; }
+function renderFestivalHero(f){
+  if (!f){ $('#festHero').innerHTML = `<div class="fest-emoji">${svgIcon('party')}</div><div class="fest-label">还没有订阅任何节日包</div><div class="fest-desc-hero">前往「订阅日历」选择你感兴趣的节日包，即可在这里看到倒计时。</div>`; return; }
+  $('#festHero').innerHTML = `<div class="fest-emoji">${svgIcon(f.icon)}</div><div class="fest-label">距离 <b>${f.name}</b> 还有</div><div class="fest-countdown" id="festHeroCountdown">—</div><div class="fest-date">${fmtDate(f.date)} ${weekCN[f.date.getDay()]}</div>${f.desc ? `<div class="fest-desc-hero">${f.desc}</div>` : ''}`;
+}
+function updateFestivalHeroCountdown(f){
+  const el = document.getElementById('festHeroCountdown'); if (!el || !f) return;
+  const diff = f.date.getTime() - Date.now();
+  if (diff <= 0){ el.innerHTML = `<span class="num" style="background:linear-gradient(180deg,#fff,#3ddc97);-webkit-background-clip:text;background-clip:text;">就是今天</span>`; return; }
+  const totalSec = Math.floor(diff / 1000); const days = Math.floor(totalSec / 86400); const hours = Math.floor((totalSec % 86400) / 3600); const mins = Math.floor((totalSec % 3600) / 60); const secs = totalSec % 60;
+  el.innerHTML = `<span class="num">${days}</span><small>天</small><span class="num">${pad(hours)}</span><small>时</small><span class="num">${pad(mins)}</span><small>分</small><span class="num">${pad(secs)}</span><small>秒</small>`;
+}
+function renderFestivalList(list){
+  const box = $('#festList'); const now = new Date(); const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (!list.length){ box.innerHTML = '<div class="empty-hint">暂无更多节日<br>试试在「订阅日历」中开启更多节日包</div>'; return; }
+  box.innerHTML = list.map((f, i) => {
+    const days = Math.round((f.date.getTime() - today.getTime()) / 86400000);
+    const dayTxt = days === 0 ? '<span class="fi-days today">就是今天</span>' : `<span class="fi-days">${days}<small>天</small></span>`;
+    return `<div class="fest-item" data-idx="${i}"><div class="fi-row"><span class="fi-icon">${svgIcon(f.icon)}</span><div class="fi-body"><div class="fi-name">${f.name}</div><div class="fi-date">${fmtDate(f.date)} ${weekCN[f.date.getDay()]}</div></div>${dayTxt}</div><div class="fi-desc">${f.desc || '暂无介绍'}</div></div>`;
+  }).join('');
+  box.querySelectorAll('.fest-item').forEach(el => { el.addEventListener('click', () => el.classList.toggle('open')); });
+}
+function updateFestivals(){
+  try {
+    const list = getUpcomingFestivals(12);
+    const key = list.length ? list.map(f => f.name + f.date.getTime()).join('|') : 'empty';
+    if (key !== lastFestKey){ lastFestKey = key; renderFestivalHero(list[0] || null); renderFestivalList(list.slice(1)); }
+    if (list.length) updateFestivalHeroCountdown(list[0]);
+  } catch(e){}
+}
+function renderSubscriptions(){
+  const summary = $('#subSummary');
+  const activePacks = FEST_PACKS.filter(p => subscriptions[p.id]).length;
+  const activeFests = getSubscribedFestivals().length;
+  const totalFests = FEST_PACKS.reduce((s, p) => s + p.festivals.length, 0);
+  summary.innerHTML = `<div class="sub-stat"><div class="sub-stat-k">已订阅节日包</div><div class="sub-stat-v">${activePacks}<small>/ ${FEST_PACKS.length} 个</small></div></div><div class="sub-stat"><div class="sub-stat-k">已同步节日</div><div class="sub-stat-v">${activeFests}<small>/ ${totalFests} 个</small></div></div><div class="sub-stat"><div class="sub-stat-k">同步范围</div><div class="sub-stat-v" style="font-size:15px">万年历 · 节日倒计时</div></div>`;
+  const list = $('#packList');
+  list.innerHTML = FEST_PACKS.map(pack => {
+    const on = subscriptions[pack.id];
+    return `<div class="pack-card ${on ? 'on' : ''}" data-pack="${pack.id}"><div class="pack-icon">${svgIcon(pack.icon)}</div><div class="pack-info"><h3>${pack.name}</h3><p>${pack.desc}</p><div class="pack-meta">包含 <b>${pack.festivals.length}</b> 个节日</div></div><button class="pack-toggle-btn ${on ? 'subscribed' : ''}" data-pack-btn="${pack.id}">${on ? '已订阅' : '订阅'}</button></div>`;
+  }).join('');
+  list.querySelectorAll('[data-pack-btn]').forEach(btn => { btn.addEventListener('click', e => { e.stopPropagation(); openPackModal(btn.dataset.packBtn); }); });
+}
+let currentPackId = null;
+function openPackModal(packId){
+  const pack = FEST_PACKS.find(p => p.id === packId); if (!pack) return; currentPackId = packId;
+  $('#packMIcon').innerHTML = svgIcon(pack.icon); $('#packMName').textContent = pack.name; $('#packMDesc').textContent = pack.desc; $('#packMCount').textContent = `包含 ${pack.festivals.length} 个节日`;
+  $('#packMList').innerHTML = pack.festivals.map(f => `<div class="pack-modal-item"><span class="pmi">${svgIcon(f.icon)}</span><div class="pmb"><div class="pmn">${f.name}</div><div class="pmd">${formatFestDateLabel(f)}</div><div class="pmdesc">${f.desc || '暂无介绍'}</div></div></div>`).join('');
+  const on = subscriptions[packId]; const confirmBtn = $('#packMConfirm');
+  confirmBtn.textContent = on ? '取消订阅' : '订阅'; confirmBtn.className = on ? 'btn-ghost' : 'btn-primary';
+  $('#packModal').classList.add('open');
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function formatFestDateLabel(f){
+  if (f.type === 'solar') return `${f.month}月${f.day}日`;
+  if (f.type === 'lunar') return `农历${cnMonths[f.month-1]}月${cnDays[f.day-1]}`;
+  if (f.type === 'nth'){ const wd = ['周日','周一','周二','周三','周四','周五','周六'][f.weekday]; if (f.nth === -1) return `${f.month}月最后一个${wd}`; return `${f.month}月第${f.nth}个${wd}`; }
+  if (f.type === 'term') return `节气 · ${f.termName}`;
+  if (f.type === 'chuxi') return '农历腊月最后一天';
+  return '';
+}
+$('#packMConfirm').addEventListener('click', () => {
+  if (!currentPackId) return;
+  subscriptions[currentPackId] = !subscriptions[currentPackId];
+  saveSubscriptions(); clearFestCache(); renderSubscriptions(); renderCalendar(); lastFestKey = ''; updateFestivals(); closeModal('packModal');
+  showToast(subscriptions[currentPackId] ? '已订阅，同步至万年历' : '已取消订阅');
+});
+document.querySelectorAll('[data-close]').forEach(btn => { btn.addEventListener('click', () => closeModal(btn.dataset.close)); });
+document.querySelectorAll('.modal').forEach(m => { m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }); });
+$('#subAll').addEventListener('click', () => { FEST_PACKS.forEach(p => subscriptions[p.id] = true); saveSubscriptions(); clearFestCache(); renderSubscriptions(); renderCalendar(); lastFestKey = ''; updateFestivals(); showToast('已订阅全部节日包'); });
+$('#subReset').addEventListener('click', () => { FEST_PACKS.forEach(p => subscriptions[p.id] = p.default); saveSubscriptions(); clearFestCache(); renderSubscriptions(); renderCalendar(); lastFestKey = ''; updateFestivals(); showToast('已恢复默认订阅'); });
+const ALL_SIGNS = ['白羊座','金牛座','双子座','巨蟹座','狮子座','处女座','天秤座','天蝎座','射手座','摩羯座','水瓶座','双鱼座'];
+function getSign(m, d){
+  const arr = [[1,20,'水瓶座'],[2,19,'双鱼座'],[3,21,'白羊座'],[4,20,'金牛座'],[5,21,'双子座'],[6,22,'巨蟹座'],[7,23,'狮子座'],[8,23,'处女座'],[9,23,'天秤座'],[10,24,'天蝎座'],[11,22,'射手座'],[12,22,'摩羯座']];
+  let s = '摩羯座'; for (const [mm, dd, name] of arr){ if (m > mm || (m === mm && d >= dd)) s = name; } return s;
+}
+const LUCKY_COLORS = [
+  { name:'星空紫', hex:'#7c5cff' },{ name:'樱花粉', hex:'#ff8fb1' },{ name:'薄荷绿', hex:'#3ddc97' },
+  { name:'暖阳橙', hex:'#ffb84d' },{ name:'天空蓝', hex:'#4fb8ff' },{ name:'珊瑚红', hex:'#ff6b6b' },
+  { name:'柠檬黄', hex:'#ffe066' },{ name:'薰衣草', hex:'#b39ddb' },{ name:'奶油白', hex:'#f0e2c4' },{ name:'湖水青', hex:'#4fd8d0' }
+];
+const LUCKY_DIRS = ['正东','东南','正南','西南','正西','西北','正北','东北'];
+const GOOD_POOL = ['洽谈合作','出行','表白','静心学习','整理房间','运动健身','投资理财','早睡早起','约见好友','读一本好书','冥想放空','断舍离','尝试新事物','复盘计划','下厨做饭','主动沟通','拍照记录','喝够八杯水','给家人打电话'];
+const BAD_POOL = ['熬夜','冲动消费','情绪化决策','拖延','口舌之争','暴饮暴食','独自远行','轻信他人','熬夜刷手机','临时变卦','过度内耗','硬撑逞强','边吃边看剧','把话说太满','忘记重要约定'];
+const DESC_MAP = {
+  high:['诸事顺遂，能量场拉满。今天适合把酝酿已久的计划往前推一大步，主动出击会得到意想不到的回应。','运势高开高走，行动力与判断力同时在线。抓住上午的黄金时段处理最难的事，事半功倍。','今天你自带主角光环，沟通顺畅、灵感频出。大胆表达想法，会有人愿意为你搭台。'],
+  mid:['整体平稳，没有大起大落。按部就班完成手头的事，留一点时间给自己放空，反而更有收获。','节奏不快不慢，适合处理积压的琐事。别急着做重大决定，多听一句别人的建议没坏处。','运势中规中矩，稳字当头。把注意力收回到自己能控制的事情上，心态会轻松很多。'],
+  low:['今天能量偏低，不必强求效率。允许自己慢一点，把重要的事往后放一放，先照顾好情绪。','容易遇到小摩擦，说话前多停顿三秒。今天适合独处、整理、复盘，不适合硬碰硬。','运势略显低迷，但也不是坏事——它提醒你该休息了。早点收工，给自己一顿好饭。']
+};
+let currentSign = '';
+function initFortune(){
+  const n = bjNow(); currentSign = getSign(n.getMonth() + 1, n.getDate());
+  const bar = $('#signBar'); bar.innerHTML = '';
+  ALL_SIGNS.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'sign-chip' + (s === currentSign ? ' on' : '');
+    b.textContent = s;
+    b.onclick = () => { currentSign = s; [...bar.children].forEach(c => c.classList.toggle('on', c.textContent === s)); renderFortune(); scrollTabIntoView(bar, b, 20); };
+    bar.appendChild(b);
+  });
+  enableDragScroll(bar);
+  requestAnimationFrame(() => { const active = bar.querySelector('.sign-chip.on'); if (active) scrollTabIntoView(bar, active, 20); });
+  renderFortune();
+  updateScrollEdges();
+}
+function renderFortune(){
+  const n = bjNow(); const y = n.getFullYear(), m = n.getMonth() + 1, d = n.getDate();
+  $('#fortuneDate').textContent = `${y}年${m}月${d}日 ${weekCN[n.getDay()]} · ${currentSign}`;
+  const r = rng(seedFrom(`${y}-${m}-${d}|${currentSign}`));
+  const overall = 55 + Math.floor(r() * 46); const love = 40 + Math.floor(r() * 61); const work = 40 + Math.floor(r() * 61); const money = 40 + Math.floor(r() * 61); const health = 40 + Math.floor(r() * 61);
+  $('#scoreRing').style.background = `conic-gradient(from 180deg, #7c5cff 0%, #ff5c8a ${overall}%, rgba(255,255,255,.08) ${overall}%)`;
+  $('#scoreNum').textContent = overall;
+  const starCount = Math.max(1, Math.round(overall / 20)); let starsHtml = ''; for (let i = 1; i <= 5; i++) starsHtml += `<span class="${i <= starCount ? '' : 'off'}">★</span>`; $('#stars').innerHTML = starsHtml;
+  let title, pool;
+  if (overall >= 88){ title = '鸿运当头'; pool = DESC_MAP.high; } else if (overall >= 76){ title = '顺风顺水'; pool = DESC_MAP.high; } else if (overall >= 66){ title = '稳中有进'; pool = DESC_MAP.mid; } else if (overall >= 58){ title = '波澜不惊'; pool = DESC_MAP.mid; } else { title = '宜静不宜动'; pool = DESC_MAP.low; }
+  $('#fortuneTitle').textContent = `${currentSign} · ${title}`;
+  $('#fortuneDesc').textContent = pool[Math.floor(r() * pool.length)];
+  const bars = [{k:'爱情',v:love,c:'f-love'},{k:'事业',v:work,c:'f-work'},{k:'财运',v:money,c:'f-money'},{k:'健康',v:health,c:'f-health'}];
+  $('#bars').innerHTML = bars.map(b => `<div class="bar-row"><div class="bar-top"><span>${b.k}</span><b>${b.v}</b></div><div class="bar-bg"><div class="bar-fill ${b.c}" data-w="${b.v}"></div></div></div>`).join('');
+  const color = LUCKY_COLORS[Math.floor(r() * LUCKY_COLORS.length)]; const num = 1 + Math.floor(r() * 9); const dir = LUCKY_DIRS[Math.floor(r() * LUCKY_DIRS.length)]; const others = ALL_SIGNS.filter(s => s !== currentSign); const luckySign = others[Math.floor(r() * others.length)];
+  $('#lucky').innerHTML = `<div class="lucky-item"><span class="swatch" style="background:${color.hex}"></span><span><i class="k">幸运色</i><b class="v">${color.name}</b></span></div><div class="lucky-item"><span class="swatch" style="background:linear-gradient(135deg,#7c5cff,#ff5c8a)">${num}</span><span><i class="k">幸运数字</i><b class="v">${num}</b></span></div><div class="lucky-item"><span class="swatch" style="background:rgba(79,184,255,.18);color:#4fb8ff">✦</span><span><i class="k">幸运方位</i><b class="v">${dir}</b></span></div><div class="lucky-item"><span class="swatch" style="background:rgba(255,184,77,.18);color:#ffb84d">☾</span><span><i class="k">贵人星座</i><b class="v">${luckySign}</b></span></div>`;
+  const good = pickN(GOOD_POOL, 3, r); const bad = pickN(BAD_POOL, 3, r);
+  $('#goodList').innerHTML = good.map(t => `<span class="tag">${t}</span>`).join('');
+  $('#badList').innerHTML = bad.map(t => `<span class="tag">${t}</span>`).join('');
+  requestAnimationFrame(() => { document.querySelectorAll('#bars .bar-fill').forEach(el => { el.style.width = el.dataset.w + '%'; }); });
+}
+function pickN(arr, n, r){ const copy = arr.slice(); const out = []; for (let i = 0; i < n && copy.length; i++) out.push(copy.splice(Math.floor(r() * copy.length), 1)[0]); return out; }
+let toastTimer = null;
+function showToast(msg){ let t = document.querySelector('.toast'); if (!t){ t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); } t.textContent = msg; requestAnimationFrame(() => t.classList.add('show')); clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.classList.remove('show'); }, 2200); }
+const QUOTA_DAILY = 100; const QUOTA_PER_CHARS = 3; const QUOTA_KEY = 'xq_ai_quota_v3'; let quotaMemory = null;
+function getQuotaData(){
+  const today = getTodayKeyBJ();
+  if (quotaMemory && quotaMemory.date === today) return quotaMemory;
+  let restored = null;
+  try { const raw = localStorage.getItem(QUOTA_KEY); if (raw){ const d = JSON.parse(raw); if (d && d.date === today && typeof d.remaining === 'number'){ restored = { date: today, remaining: Math.max(0, Math.floor(d.remaining)) }; } } } catch(e){}
+  quotaMemory = restored || { date: today, remaining: QUOTA_DAILY };
+  if (!restored){ try { localStorage.setItem(QUOTA_KEY, JSON.stringify(quotaMemory)); } catch(e){} }
+  return quotaMemory;
+}
+function setQuotaRemaining(n){ const today = getTodayKeyBJ(); const remaining = Math.max(0, Math.floor(n)); quotaMemory = { date: today, remaining }; try { localStorage.setItem(QUOTA_KEY, JSON.stringify(quotaMemory)); } catch(e){} }
+function getQuotaRemaining(){ return getQuotaData().remaining; }
+function updateQuotaDisplay(){ const el = $('#aiQuota'); if (!el) return; const remaining = getQuotaRemaining(); el.textContent = `${remaining} 额度`; el.classList.remove('low', 'empty'); if (remaining <= 0) el.classList.add('empty'); else if (remaining <= 20) el.classList.add('low'); }
+function quotaCostFor(text){ return Math.max(1, Math.ceil(text.length / QUOTA_PER_CHARS)); }
+const AI = { messages: [], initialized: false, busy: false };
+const THINKING_MESSAGES = ['小七思考中…','让小七翻翻万年历…','掐指一算…','小七瞎猜中…','数据加载中…','Seven戚的软件真好用','认真查阅中…','小七脑袋转啊转…','快好了快好了…','翻开农历小本本…','正在对比节气…','嗯…这个有点意思…'];
+function aiInit(){
+  if (AI.initialized) return; AI.initialized = true;
+  aiAddMessage('ai', `<div class="ai-answer ai-help"><div class="ai-help-title">你好，我是小七 AI 助手 ✨</div><div class="ai-help-item">📅 输入日期，如「今天」「2025年5月1日」</div><div class="ai-help-item">🎯 输入节日名，如「春节」，查还有多少天</div><div class="ai-help-item">🔮 输入年份，如「2025年是什么年」「2026年春节」</div><div class="ai-help-item">🌙 输入「农历五月初五」，查对应的公历日期</div><div class="ai-help-hint">每日赠送 100 额度，每 3 个字消耗 1 额度</div></div>`, true);
+  updateQuotaDisplay();
+  updateScrollEdges();
+}
+function aiAddMessage(role, content, isHtml){ AI.messages.push({ role, content, isHtml, type: 'normal' }); aiRenderMessages(); }
+function aiAddThinkingMessage(text){ AI.messages.push({ role: 'ai', content: text, isThinking: true, type: 'thinking' }); aiRenderMessages(); return AI.messages.length - 1; }
+function aiReplaceMessage(idx, content, isHtml){ if (idx >= 0 && idx < AI.messages.length){ AI.messages[idx] = { role: 'ai', content, isHtml, type: 'normal' }; aiRenderMessages(); } }
+function aiRenderMessages(){
+  const box = $('#aiMessages'); if (!box) return;
+  box.innerHTML = AI.messages.map(m => {
+    if (m.role === 'user') return `<div class="ai-msg user"><div class="ai-bubble">${escapeHtml(m.content)}</div></div>`;
+    else if (m.isThinking) return `<div class="ai-msg ai thinking"><div class="ai-bubble"><span class="ai-thinking-text">${escapeHtml(m.content)}</span><span class="ai-thinking-dots"><span></span><span></span><span></span></span></div></div>`;
+    else return `<div class="ai-msg ai"><div class="ai-bubble">${m.isHtml ? m.content : escapeHtml(m.content)}</div></div>`;
+  }).join('');
+  requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
+}
+function aiSetBusy(busy){ AI.busy = busy; const input = $('#aiInput'); const send = $('#aiSend'); const chips = document.querySelectorAll('.ai-chip'); if (input) input.disabled = busy; if (send) send.disabled = busy; chips.forEach(c => c.disabled = busy); if (!busy && input && window.innerWidth > 860) input.focus(); }
+function aiOpen(){ aiInit(); $('#aiModal').classList.add('open'); updateQuotaDisplay(); setTimeout(() => { const box = $('#aiMessages'); if (box) box.scrollTop = box.scrollHeight; const input = $('#aiInput'); if (input && window.innerWidth > 860 && !AI.busy) input.focus(); }, 120); }
+function aiClose(){ $('#aiModal').classList.remove('open'); }
+const cnMonthMap = {'正':1,'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,'冬':11,'十一':11,'腊':12,'十二':12};
+const cnDayMap = { '初一':1,'初二':2,'初三':3,'初四':4,'初五':5,'初六':6,'初七':7,'初八':8,'初九':9,'初十':10,'十一':11,'十二':12,'十三':13,'十四':14,'十五':15,'十六':16,'十七':17,'十八':18,'十九':19,'二十':20,'廿一':21,'廿二':22,'廿三':23,'廿四':24,'廿五':25,'廿六':26,'廿七':27,'廿八':28,'廿九':29,'三十':30 };
+function aiProcess(text){
+  const t = text.replace(/\s+/g, ''); const bj = bjNow();
+  const yearWhatM = t.match(/(\d{4})年(是什么年|是农历什么年|属什么|是什么生肖|生肖是什么|是什么属相)/);
+  if (yearWhatM) return aiYearInfoResponse(+yearWhatM[1]);
+  const yearFestM = t.match(/(\d{4})年(?:的)?(.+?)(?:是什么时候|是几月几日|是几月几号|是哪一天|是哪天|是几号|啥时候|什么时候|在哪天|在几月|几月几号)/);
+  if (yearFestM){ const y = +yearFestM[1]; const festName = yearFestM[2].replace(/的|节日/g, '').trim(); return aiYearFestResponse(y, festName); }
+  // 兜底：输入中同时出现“明确年份 + 节日名”时，一律按该年份查询，
+  // 防止“2026年春节啥时候”这类表述因疑问词未命中而落到“最近未来”倒计时、错报成 2027 年
+  const festQ = t.replace(/是什么时候|啥时候|什么时候|是几月几日|是几月几号|是哪一天|是哪天|在哪天|在几月|是几号|几月几号|几月几日|几号|几日|哪天|几时/g, '');
+  const yearNumM = festQ.match(/(\d{4})/);
+  if (yearNumM){
+    const y = +yearNumM[1];
+    if (y >= 1900 && y <= 2100){
+      const allF = getAllFestivalsWithPack(); let matchedF = null;
+      const festNamePart = festQ.replace(/\d{4}年?|的|节日|是/g, '').trim();
+      for (const f of allF){
+        const hit = festQ.includes(f.name) || (festNamePart.length >= 2 && f.name.includes(festNamePart));
+        if (hit){ if (!matchedF || f.name.length > matchedF.name.length) matchedF = f; }
+      }
+      if (matchedF) return aiYearFestResponse(y, matchedF.name);
+    }
+  }
+  if (/今天|今日|今儿|本日|当天/.test(t)) return aiDateResponse(bj.getFullYear(), bj.getMonth()+1, bj.getDate());
+  if (/明天|明日|明儿/.test(t)){ const d = new Date(bj.getFullYear(), bj.getMonth(), bj.getDate()+1); return aiDateResponse(d.getFullYear(), d.getMonth()+1, d.getDate()); }
+  if (/昨天|昨日|昨儿/.test(t)){ const d = new Date(bj.getFullYear(), bj.getMonth(), bj.getDate()-1); return aiDateResponse(d.getFullYear(), d.getMonth()+1, d.getDate()); }
+  if (/后天/.test(t)){ const d = new Date(bj.getFullYear(), bj.getMonth(), bj.getDate()+2); return aiDateResponse(d.getFullYear(), d.getMonth()+1, d.getDate()); }
+  if (/大后天/.test(t)){ const d = new Date(bj.getFullYear(), bj.getMonth(), bj.getDate()+3); return aiDateResponse(d.getFullYear(), d.getMonth()+1, d.getDate()); }
+  if (/前天/.test(t)){ const d = new Date(bj.getFullYear(), bj.getMonth(), bj.getDate()-2); return aiDateResponse(d.getFullYear(), d.getMonth()+1, d.getDate()); }
+  const fullDateM = t.match(/(\d{4})年(\d{1,2})月(\d{1,2})[日号]?/);
+  if (fullDateM){ const y = +fullDateM[1]; if (y < 1900 || y > 2100) return aiOutOfRangeError(y); return aiDateResponse(y, +fullDateM[2], +fullDateM[3]); }
+  if (t.includes('农历')){ const lm = t.match(/(?:(\d{4})年)?农历([正一二三四五六七八九十冬腊]+)月(初[一二三四五六七八九十]|[廿三]十?[一二三四五六七八九]?|三十)/); if (lm){ const lmonth = cnMonthMap[lm[2]]; const lday = cnDayMap[lm[3]]; if (lmonth && lday) return aiLunar2SolarResponse(lmonth, lday, lm[1] ? +lm[1] : null); } }
+  const shortDateM = t.match(/(\d{1,2})月(\d{1,2})[日号]/);
+  if (shortDateM) return aiDateResponse(bj.getFullYear(), +shortDateM[1], +shortDateM[2]);
+  const yearOnlyM = t.match(/^(\d{4})年?$/);
+  if (yearOnlyM) return aiYearInfoResponse(+yearOnlyM[1]);
+  const allFests = getAllFestivalsWithPack(); let matchedFest = null;
+  for (const f of allFests){ if (t.includes(f.name)){ if (!matchedFest || f.name.length > matchedFest.name.length) matchedFest = f; } }
+  if (matchedFest) return aiCountdownResponse(matchedFest);
+  return aiHelpResponse();
+}
+function aiYearInfoResponse(y){
+  if (y < 1900 || y > 2100) return aiOutOfRangeError(y);
+  const info = getLunarYearInfo(y); const gz = info.ganzhi; const animal = info.animal;
+  const cny = lunar2solar(y, 1, 1, false); let cnyStr = '—';
+  if (cny) cnyStr = `${cny.getFullYear()}年${cny.getMonth()+1}月${cny.getDate()}日`;
+  const prevGz = getGanzhiYear(y - 1); const prevAnimal = getAnimalYear(y - 1);
+  return `<div class="ai-answer"><div class="ai-year-card"><div class="ai-year-title">🔮 ${y}年 · 农历${gz}年</div><div class="ai-year-grid"><div class="ai-year-item"><span>干支</span><b>${gz}</b></div><div class="ai-year-item"><span>生肖</span><b>${animal}</b></div><div class="ai-year-item"><span>春节</span><b style="font-size:12.5px">${cnyStr}</b></div><div class="ai-year-item"><span>上一年</span><b style="font-size:12.5px">${prevGz}(${prevAnimal})</b></div></div><div class="ai-fest-desc" style="margin-top:10px">公历 ${y} 年对应农历 <b>${gz}年</b>，生肖属<b>${animal}</b>。${cny ? `春节为 ${cny.getFullYear()}年${cny.getMonth()+1}月${cny.getDate()}日，春节前仍属${prevGz}(${prevAnimal})年。` : ''}</div></div></div>`;
+}
+function aiYearFestResponse(y, festName){
+  if (y < 1900 || y > 2100) return aiOutOfRangeError(y);
+  const all = getAllFestivalsWithPack(); let matched = null;
+  for (const f of all){ if (f.name === festName){ matched = f; break; } }
+  if (!matched){ for (const f of all){ if (f.name.includes(festName) || festName.includes(f.name)){ matched = f; break; } } }
+  if (!matched) return `<div class="ai-answer"><div class="ai-no-fest">没有找到「${escapeHtml(festName)}」这个节日，试试输入完整的节日名称？</div><div class="ai-help-hint">例如：2026年春节、2025年中秋节</div></div>`;
+  const d = getFestDate(matched, y);
+  if (!d) return `<div class="ai-answer"><div class="ai-no-fest">无法计算 ${y} 年 ${matched.name} 的日期（超出支持范围）</div></div>`;
+  const w = weekCN[d.getDay()]; const l = solar2lunar(d);
+  const gz = ganzhiGan[((l.year-4)%10+10)%10] + ganzhiZhi[((l.year-4)%12+12)%12];
+  const term = getTermName(d); const yearInfo = getLunarYearInfo(y);
+  return `<div class="ai-answer"><div class="ai-fest-name" style="font-size:15px">🎉 ${y}年 ${matched.name}</div><div class="ai-countdown-num" style="margin:8px 0 4px"><span style="font-size:13px;color:var(--muted)">公历</span><b style="font-size:20px">${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日</b></div><div class="ai-answer-date">📅 ${w}</div><div class="ai-answer-lunar">🌙 农历${gz}年 ${l.isLeap?'闰':''}${cnMonths[l.month-1]}月${cnDays[l.day-1]}${term ? ' · '+term : ''}</div><div class="ai-year-grid" style="margin-top:10px"><div class="ai-year-item"><span>该年干支</span><b>${yearInfo.ganzhi}</b></div><div class="ai-year-item"><span>该年生肖</span><b>${yearInfo.animal}</b></div></div>${matched.desc ? `<div class="ai-fest-desc" style="margin-top:10px">${matched.desc}</div>` : ''}</div>`;
+}
+function aiOutOfRangeError(y){ return `<div class="ai-answer"><div class="ai-error-out">⏰ <b>您的时间超出本网站收录范畴</b><br>本网站目前支持 <b>1900 年 — 2100 年</b> 的公历与农历数据。<br>${y ? `您输入的年份为 <b>${y}</b>，暂时无法查询。` : ''}</div></div>`; }
+function aiDateResponse(y, m, d){
+  if (y < 1900 || y > 2100) return aiOutOfRangeError(y);
+  const date = new Date(y, m - 1, d);
+  if (isNaN(date.getTime()) || date.getMonth() !== m - 1 || date.getDate() !== d) return `<div class="ai-answer"><div class="ai-no-fest">日期无效，请检查后重试。</div></div>`;
+  const w = weekCN[date.getDay()]; const l = solar2lunar(date);
+  const gz = ganzhiGan[((l.year-4)%10+10)%10] + ganzhiZhi[((l.year-4)%12+12)%12];
+  const lunarStr = `农历${gz}年 ${l.isLeap?'闰':''}${cnMonths[l.month-1]}月${cnDays[l.day-1]}`;
+  const term = getTermName(date); const fests = getFestivalsOnDate(y, m, d);
+  let html = `<div class="ai-answer"><div class="ai-answer-date">📅 ${y}年${m}月${d}日 ${w}</div><div class="ai-answer-lunar">🌙 ${lunarStr}${term ? ' · ' + term : ''}</div>`;
+  if (fests.length){ for (const f of fests){ html += `<div class="ai-fest-hit"><div class="ai-fest-name">🎉 ${f.name}</div>${f.desc ? `<div class="ai-fest-desc">${f.desc}</div>` : ''}</div>`; } }
+  else html += `<div class="ai-no-fest">这一天没有已收录的节日</div>`;
+  html += `</div>`; return html;
+}
+function aiCountdownResponse(f){
+  const today = new Date(); today.setHours(0,0,0,0); const y = today.getFullYear();
+  let nextDate = null;
+  for (let yy = y; yy <= y + 2; yy++){ const d = getFestDate(f, yy); if (d && d.getTime() >= today.getTime()){ nextDate = d; break; } }
+  if (!nextDate) return `<div class="ai-answer"><div class="ai-no-fest">未找到 ${f.name} 的未来日期</div></div>`;
+  const diff = Math.round((nextDate.getTime() - today.getTime()) / 86400000); const w = weekCN[nextDate.getDay()];
+  let html = `<div class="ai-answer"><div class="ai-fest-name" style="font-size:15px">🎉 ${f.name}</div>`;
+  if (diff === 0) html += `<div class="ai-countdown-num today">就是今天！</div>`;
+  else html += `<div class="ai-countdown-num">还有<b>${diff}</b>天</div>`;
+  html += `<div class="ai-answer-date">📅 ${nextDate.getFullYear()}年${nextDate.getMonth()+1}月${nextDate.getDate()}日 ${w}</div>`;
+  if (f.desc) html += `<div class="ai-fest-desc" style="margin-top:10px">${f.desc}</div>`;
+  html += `</div>`; return html;
+}
+function aiLunar2SolarResponse(lmonth, lday, year){
+  if (year){ if (year < 1900 || year > 2100) return aiOutOfRangeError(year); const d = lunar2solar(year, lmonth, lday, false); if (d) return aiDateResponse(d.getFullYear(), d.getMonth()+1, d.getDate()); return `<div class="ai-answer"><div class="ai-no-fest">未找到对应日期</div></div>`; }
+  const bj = bjNow(); const y = bj.getFullYear(); const results = [];
+  for (let yy = y - 1; yy <= y + 2; yy++){ const d = lunar2solar(yy, lmonth, lday, false); if (d) results.push(d); }
+  if (!results.length) return `<div class="ai-answer"><div class="ai-no-fest">未找到对应日期</div></div>`;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const upcoming = results.filter(d => d.getTime() >= today.getTime());
+  const target = upcoming.length ? upcoming[0] : results[results.length-1];
+  return aiDateResponse(target.getFullYear(), target.getMonth()+1, target.getDate());
+}
+function aiHelpResponse(){
+  return `<div class="ai-answer ai-help"><div class="ai-help-title">我试试这样理解你的问题 👇</div><div class="ai-help-item">📅 输入日期，如「今天」「2025年5月1日」</div><div class="ai-help-item">🎯 输入节日名，如「春节」「中秋节」</div><div class="ai-help-item">🔮 输入年份，如「2025年是什么年」「2026年春节」</div><div class="ai-help-item">🌙 输入「农历五月初五」查公历</div><div class="ai-help-hint">也可以点下面的快捷按钮</div></div>`;
+}
+function aiHandleSend(){
+  if (AI.busy) return;
+  const input = $('#aiInput'); if (!input) return;
+  const text = input.value.trim(); if (!text) return;
+  const cost = quotaCostFor(text); const remaining = getQuotaRemaining();
+  if (remaining <= 0){ showToast('今日额度已用完，明天再来吧'); updateQuotaDisplay(); return; }
+  if (remaining < cost){ showToast(`额度不足，本次需 ${cost} 点，剩余 ${remaining} 点`); return; }
+  setQuotaRemaining(remaining - cost); updateQuotaDisplay();
+  input.value = ''; aiAddMessage('user', text);
+  aiSetBusy(true);
+  const thinkingMsg = THINKING_MESSAGES[Math.floor(Math.random() * THINKING_MESSAGES.length)];
+  const thinkIdx = aiAddThinkingMessage(thinkingMsg);
+  const delay = 1000 + Math.random() * 4000;
+  setTimeout(() => {
+    try { const reply = aiProcess(text); aiReplaceMessage(thinkIdx, reply, true); }
+    catch(err){ aiReplaceMessage(thinkIdx, '哎呀，小七刚刚走神了，再试一次吧～', false); }
+    finally { aiSetBusy(false); }
+  }, delay);
+}
+function aiQuickQuery(queryText){
+  if (AI.busy) return;
+  const cost = quotaCostFor(queryText); const remaining = getQuotaRemaining();
+  if (remaining <= 0){ showToast('今日额度已用完，明天再来吧'); updateQuotaDisplay(); return; }
+  if (remaining < cost){ showToast(`额度不足，本次需 ${cost} 点，剩余 ${remaining} 点`); return; }
+  setQuotaRemaining(remaining - cost); updateQuotaDisplay();
+  aiAddMessage('user', queryText); aiSetBusy(true);
+  const thinkingMsg = THINKING_MESSAGES[Math.floor(Math.random() * THINKING_MESSAGES.length)];
+  const thinkIdx = aiAddThinkingMessage(thinkingMsg);
+  const delay = 1000 + Math.random() * 4000;
+  setTimeout(() => {
+    try { const reply = aiProcess(queryText); aiReplaceMessage(thinkIdx, reply, true); }
+    catch(err){ aiReplaceMessage(thinkIdx, '哎呀，小七刚刚走神了，再试一次吧～', false); }
+    finally { aiSetBusy(false); }
+  }, delay);
+}
+let pickerCategory = 'all'; let pickerKeyword = '';
+function openFestPicker(){ pickerCategory = 'all'; pickerKeyword = ''; $('#festSearchInput').value = ''; renderPickerTabs(); renderPickerList(); $('#festPickerModal').classList.add('open'); }
+function renderPickerTabs(){
+  const tabs = $('#pickerTabs');
+  const cats = [{ id: 'all', name: '全部' }, ...FEST_PACKS.map(p => ({ id: p.id, name: p.name.replace('节日包','') }))];
+  tabs.innerHTML = cats.map(c => `<button class="picker-tab ${c.id === pickerCategory ? 'on' : ''}" data-cat="${c.id}">${c.name}</button>`).join('');
+  tabs.querySelectorAll('[data-cat]').forEach(b => { b.addEventListener('click', () => { pickerCategory = b.dataset.cat; renderPickerTabs(); renderPickerList(); requestAnimationFrame(() => scrollTabIntoView(tabs, b, 20)); }); });
+  enableDragScroll(tabs);
+  updateScrollEdges();
+}
+function renderPickerList(){
+  const kw = pickerKeyword.trim(); let all = getAllFestivalsWithPack();
+  if (pickerCategory !== 'all') all = all.filter(f => f.packId === pickerCategory);
+  if (kw) all = all.filter(f => f.name.includes(kw));
+  const box = $('#festPickerList');
+  if (!all.length){ box.innerHTML = '<div class="picker-empty">没有找到相关节日</div>'; return; }
+  box.innerHTML = all.map(f => `<div class="picker-item" data-fest="${escapeHtml(f.name)}"><span class="pi">${svgIcon(f.icon)}</span><div class="pb"><div class="pn">${f.name}</div><div class="pd">${formatFestDateLabel(f)}</div></div></div>`).join('');
+  box.querySelectorAll('[data-fest]').forEach(el => { el.addEventListener('click', () => { const name = el.dataset.fest; closeModal('festPickerModal'); aiQuickQuery(`${name}还有多少天`); }); });
+}
+$('#festSearchInput').addEventListener('input', e => { pickerKeyword = e.target.value; renderPickerList(); });
+function openDatePicker(){ const today = new Date(); const iso = today.toISOString().slice(0,10); const input = $('#datePickerInput'); input.value = iso; $('#datePickerModal').classList.add('open'); }
+$('#datePickerConfirm').addEventListener('click', () => { const v = $('#datePickerInput').value; if (!v) return; const [y, m, d] = v.split('-').map(Number); closeModal('datePickerModal'); aiQuickQuery(`${y}年${m}月${d}日是什么节日`); });
+$('#aiFab').addEventListener('click', aiOpen);
+$('#aiClose').addEventListener('click', aiClose);
+$('#aiSend').addEventListener('click', aiHandleSend);
+$('#aiInput').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); aiHandleSend(); } });
+$('#aiModal').addEventListener('click', e => { if (e.target === $('#aiModal')) aiClose(); });
+$('#aiQuickRow').addEventListener('click', e => {
+  const btn = e.target.closest('[data-quick]'); if (!btn || btn.disabled) return;
+  const q = btn.dataset.quick;
+  if (q === 'today') aiQuickQuery('今天是什么节日');
+  else if (q === 'pick-date') openDatePicker();
+  else if (q === 'pick-fest') openFestPicker();
+  else if (q === 'this-year'){ const y = bjNow().getFullYear(); aiQuickQuery(`${y}年是什么年`); }
+});
+(function lockViewport(){
+  ['gesturestart','gesturechange','gestureend'].forEach(ev => { document.addEventListener(ev, e => e.preventDefault(), { passive: false }); });
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', e => { const now = Date.now(); if (now - lastTouchEnd <= 300) e.preventDefault(); lastTouchEnd = now; }, { passive: false });
+  document.addEventListener('wheel', e => { if (e.ctrlKey || e.metaKey) e.preventDefault(); }, { passive: false });
+  document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && ['+','-','=','0'].includes(e.key)) e.preventDefault(); });
+})();
+const navEl = document.getElementById('nav');
+enableDragScroll(navEl);
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b === btn));
+    const v = btn.dataset.view;
+    document.querySelectorAll('.view').forEach(s => s.classList.toggle('active', s.id === 'view-' + v));
+    scrollTabIntoView(navEl, btn, 20);
+    if (v === 'timer' && !timer.running) updateTimerPreview();
+    if (v === 'festival'){ lastFestKey = ''; updateFestivals(); }
+    if (v === 'subscribe') renderSubscriptions();
+  });
+});
+initCalendar(); initTimer(); initFortune(); renderSubscriptions(); updateFestivals(); updateClock(); updateQuotaDisplay();
+updateScrollEdges();
+window.addEventListener('resize', () => { requestAnimationFrame(updateScrollEdges); });
+setInterval(updateClock, 50);
+setInterval(tickTimer, 50);
+setInterval(updateFestivals, 1000);
+setInterval(() => { if (!timer.running) updateTimerPreview(); }, 30000);
+setInterval(() => { updateQuotaDisplay(); }, 60000);
+let lastDayKey = new Date().getDate();
+setInterval(() => {
+  const now = new Date();
+  if (now.getDate() !== lastDayKey){
+    lastDayKey = now.getDate();
+    renderFortune(); renderCalendar(); lastFestKey = ''; updateFestivals(); updateQuotaDisplay();
+  }
+}, 60000);
+</script>
+</body>
+</html>
+<!-- （注：内容由AI生成） -->
